@@ -6,7 +6,9 @@ BUILD_DIR="${REPO_DIR}/build"
 PKG_ROOT="${BUILD_DIR}/deb_pkg_root"
 DEB_NAME="xreader-pro_4.8.0-1_amd64.deb"
 
-echo "==> 1. Compiling and staging files..."
+echo "==> 1. Configuring, compiling and staging files..."
+meson setup "${BUILD_DIR}" --reconfigure --prefix=/usr --libexecdir=/usr/libexec
+ninja -C "${BUILD_DIR}"
 rm -rf "${PKG_ROOT}"
 DESTDIR="${PKG_ROOT}" ninja -C "${BUILD_DIR}" install
 
@@ -22,6 +24,9 @@ Priority: optional
 Architecture: amd64
 Maintainer: Yuri Schmaltz <yuri.schmaltz@gmail.com>
 Depends: libc6, libglib2.0-0t64 | libglib2.0-0, libgtk-3-0t64 | libgtk-3-0, libpoppler-glib8t64 | libpoppler-glib8, libspectre1, libtiff6 | libtiff5, libgxps2, libwebkit2gtk-4.1-0, libsecret-1-0, libxapp1, libarchive13t64 | libarchive13, libkpathsea6, libtesseract5 | tesseract-ocr
+Provides: xreader, pdf-viewer, document-viewer
+Replaces: xreader
+Conflicts: xreader
 Description: Advanced Document Viewer Pro with Native Tabs, X.509 Signatures & OCR
  Xreader Pro is a modern, fast, and feature-rich document viewer supporting
  PDF, PostScript, DjVu, TIFF, DVI, XPS, EPUB, and Comic books.
@@ -39,6 +44,7 @@ cat <<'DEB_POSTINST' > "${PKG_ROOT}/DEBIAN/postinst"
 #!/bin/sh
 set -e
 if [ "$1" = "configure" ]; then
+    ldconfig 2>/dev/null || true
     glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null || true
     update-desktop-database -q /usr/share/applications 2>/dev/null || true
     gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
@@ -51,6 +57,7 @@ cat <<'DEB_POSTRM' > "${PKG_ROOT}/DEBIAN/postrm"
 #!/bin/sh
 set -e
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    ldconfig 2>/dev/null || true
     glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null || true
     update-desktop-database -q /usr/share/applications 2>/dev/null || true
     gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
