@@ -88,13 +88,18 @@ test_new_from_pixbuf (void)
 	g_object_unref (image);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
+
 static void
 test_new_from_pixbuf_null (void)
 {
 	/* Passing NULL must trigger g_return_val_if_fail and return
 	 * NULL, not crash. */
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*pixbuf*");
 	EvImage *image = ev_image_new_from_pixbuf (NULL);
 	g_assert_null (image);
+	g_test_assert_expected_messages ();
 }
 
 static void
@@ -102,10 +107,15 @@ test_getters_with_non_image (void)
 {
 	/* The getters must not crash on a non-EvImage pointer;
 	 * the documented sentinel for the int getters is -1. */
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*image*");
 	g_assert_cmpint (ev_image_get_page (NULL), ==, -1);
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*image*");
 	g_assert_cmpint (ev_image_get_id   (NULL), ==, -1);
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*image*");
 	g_assert_null (ev_image_get_pixbuf (NULL));
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*image*");
 	g_assert_null (ev_image_get_tmp_uri (NULL));
+	g_test_assert_expected_messages ();
 }
 
 /* ----- save_tmp / get_tmp_uri ----- */
@@ -164,8 +174,10 @@ test_save_tmp_with_null_image (void)
 {
 	/* save_tmp must return NULL on a non-EvImage pointer. */
 	GdkPixbuf *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 1, 1);
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*image*");
 	const gchar *uri = ev_image_save_tmp (NULL, pixbuf);
 	g_assert_null (uri);
+	g_test_assert_expected_messages ();
 	g_object_unref (pixbuf);
 }
 
@@ -174,10 +186,14 @@ test_save_tmp_with_null_pixbuf (void)
 {
 	/* save_tmp must return NULL when the pixbuf is NULL. */
 	EvImage *image = ev_image_new (0, 0);
+	g_test_expect_message (NULL, G_LOG_LEVEL_CRITICAL, "*pixbuf*");
 	const gchar *uri = ev_image_save_tmp (image, NULL);
 	g_assert_null (uri);
+	g_test_assert_expected_messages ();
 	g_object_unref (image);
 }
+
+#pragma GCC diagnostic pop
 
 int
 main (int argc, char *argv[])

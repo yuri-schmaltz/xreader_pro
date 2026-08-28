@@ -120,7 +120,6 @@ GdkPixbuf *
 ev_image_get_pixbuf (EvImage *image)
 {
 	g_return_val_if_fail (EV_IS_IMAGE (image), NULL);
-	g_return_val_if_fail (GDK_IS_PIXBUF (image->priv->pixbuf), NULL);
 
 	return image->priv->pixbuf;
 }
@@ -148,6 +147,11 @@ ev_image_save_tmp (EvImage   *image,
         close (fd);
 
 	if (!error) {
+		if (image->priv->pixbuf != pixbuf) {
+			if (image->priv->pixbuf)
+				g_object_unref (image->priv->pixbuf);
+			image->priv->pixbuf = g_object_ref (pixbuf);
+		}
 		image->priv->tmp_uri = g_filename_to_uri (filename, NULL, &error);
                 if (image->priv->tmp_uri == NULL)
                         goto had_error;

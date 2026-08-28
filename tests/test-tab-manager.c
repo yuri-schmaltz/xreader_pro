@@ -64,7 +64,7 @@ make_fake_document (void)
 static EvTab *
 make_fake_tab (void)
 {
-	return EV_TAB (ev_tab_new (make_fake_document ()));
+	return EV_TAB (g_object_ref_sink (ev_tab_new (make_fake_document ())));
 }
 
 /* --- tests --- */
@@ -344,7 +344,7 @@ test_get_tab_by_location (void)
 int
 main (int argc, char *argv[])
 {
-	g_test_init (&argc, &argv, NULL);
+	gtk_test_init (&argc, &argv, NULL);
 
 	g_test_add_func ("/tab-manager/new-empty",           test_new_empty);
 	g_test_add_func ("/tab-manager/append-tab",          test_append_tab);

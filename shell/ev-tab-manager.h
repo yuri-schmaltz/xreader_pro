@@ -117,9 +117,6 @@ void          ev_tab_manager_reorder_tab (EvTabManager *manager,
                                           guint         new_index);
 
 G_END_DECLS
-
-#endif /* EV_TAB_MANAGER_H */
-
 /* "Reopen closed tab" stack.  When a tab is removed, its document
  * is moved to the reopen stack (along with the page + scroll state).
  * ev_tab_manager_reopen_last_closed_tab() pops the most recent
@@ -130,3 +127,7 @@ guint         ev_tab_manager_get_reopen_stack_size  (EvTabManager *manager);
 void          ev_tab_manager_clear_reopen_stack     (EvTabManager *manager);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EvTabManager, g_object_unref)
+
+G_END_DECLS
+
+#endif /* EV_TAB_MANAGER_H */

@@ -435,7 +435,7 @@ ev_attachment_open (EvAttachment *attachment,
 							   timestamp, error);
 		}
 
-		g_object_unref (file);
+		g_clear_object (&file);
 	}
 
 	return retval;

@@ -339,6 +339,9 @@ ev_tmp_file_unlink (GFile *file)
 
 	if (!file)
 		return;
+
+	if (!ev_file_is_temp (file))
+		return;
 	
 	res = g_file_delete (file, NULL, &error);
 	if (!res) {
@@ -558,6 +561,14 @@ compression_run (const gchar       *uri,
 	filename = g_filename_from_uri (uri, NULL, error);
 	if (!filename) {
 		g_free (cmd);
+		return NULL;
+	}
+
+	if (!g_file_test (filename, G_FILE_TEST_EXISTS)) {
+		g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_NOENT,
+		             "File \"%s\" does not exist.", filename);
+		g_free (cmd);
+		g_free (filename);
 		return NULL;
 	}
 

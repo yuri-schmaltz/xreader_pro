@@ -169,8 +169,13 @@ ev_application_load_session (EvApplication *application)
             ev_tabbed_window_open_file (EV_TABBED_WINDOW (window), file, NULL);
             g_object_unref (file);
         }
+        EvTabManager *manager = ev_tabbed_window_get_tab_manager (EV_TABBED_WINDOW (window));
+        if (manager) {
+            EvTab *tab = ev_tab_manager_get_tab (manager, active_index);
+            if (tab)
+                ev_tab_manager_set_active (manager, tab);
+        }
         gtk_widget_show (window);
-        /* TODO 4.9.0: focus the tab at active_index */
     } else {
         /* Legacy path: open the first URI. */
         ev_application_open_uri_at_dest (application, uri_list[0],
@@ -325,11 +330,19 @@ ev_spawn (const char     *uri,
     gchar       *page_arg = NULL;
     gchar       *find_arg = NULL;
     const gchar *mode_arg = NULL;
-    gchar       *display_name = NULL;
+    const gchar *display_name = NULL;
     gchar      **child_env = NULL;
     GdkDisplay  *display;
 
     path = g_build_filename (BINDIR, "xreader", NULL);
+    if (!g_file_test (path, G_FILE_TEST_EXISTS)) {
+        g_free (path);
+        path = g_file_read_link ("/proc/self/exe", NULL);
+        if (!path)
+            path = g_find_program_in_path ("xreader");
+        if (!path)
+            path = g_strdup ("xreader");
+    }
 
     /* Page label or index */
     if (dest) {
@@ -378,8 +391,8 @@ ev_spawn (const char     *uri,
     argv[argc++] = path;
     if (page_arg)  argv[argc++] = page_arg;
     if (find_arg)  argv[argc++] = find_arg;
-    if (mode_arg)  argv[argc++] = (gchar *) mode_arg;
-    if (uri)       argv[argc++] = (gchar *) uri;
+    if (mode_arg)  argv[argc++] = g_strdup (mode_arg);
+    if (uri)       argv[argc++] = g_strdup (uri);
     argv[argc] = NULL;
 
     /* The original code passed `screen` and `timestamp` through
@@ -764,10 +777,13 @@ _ev_application_open_uri_at_dest (EvApplication  *application,
                                   const gchar    *search_string,
                                   guint           timestamp)
 {
+    EvWindow  *empty_window;
     GtkWidget *new_window;
 
-    new_window = ev_application_get_empty_window (application, screen);
-    if (!new_window)
+    empty_window = ev_application_get_empty_window (application, screen);
+    if (empty_window)
+        new_window = GTK_WIDGET (empty_window);
+    else
         new_window = ev_application_create_window (application);
 
     ev_application_open_uri_in_window (application, uri, EV_WINDOW (new_window),
@@ -796,7 +812,11 @@ ev_application_open_uri_at_dest (EvApplication  *application,
 {
     g_return_if_fail (uri != NULL);
 
-    if (application->uri && strcmp (application->uri, uri) != 0) {
+    GSettings *settings = g_settings_new ("org.x.reader");
+    gboolean tabbed_mode = g_settings_get_boolean (settings, "tabbed-mode");
+    g_object_unref (settings);
+
+    if (!tabbed_mode && application->uri && strcmp (application->uri, uri) != 0) {
         /* spawn a new xreader process */
         ev_spawn (uri, screen, dest, mode, search_string, timestamp);
         return;
@@ -1017,8 +1037,7 @@ ev_application_shutdown (GApplication *gapplication)
 
     ev_application_accel_map_save (application);
 
-    g_object_unref (application->scr_saver);
-    application->scr_saver = NULL;
+    g_clear_object (&application->scr_saver);
 
     g_free (application->dot_dir);
     application->dot_dir = NULL;

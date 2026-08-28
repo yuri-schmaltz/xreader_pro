@@ -32,8 +32,8 @@
 
 G_BEGIN_DECLS
 
-EvDocument* ev_document_factory_get_document (const char *uri, GError **error) G_GNUC_NONNULL (1);
-void 	    ev_document_factory_add_filters  (GtkWidget *chooser, EvDocument *document) G_GNUC_NONNULL (1, 2);
+EvDocument* ev_document_factory_get_document (const char *uri, GError **error);
+void 	    ev_document_factory_add_filters  (GtkWidget *chooser, EvDocument *document) G_GNUC_NONNULL (1);
 
 G_END_DECLS
 

@@ -215,3 +215,8 @@ compile
 # OS-specific junk
 .DS_Store
 Thumbs.db
+
+# Packaging & Compiled artifacts
+*.deb
+gschemas.compiled
+__pycache__/

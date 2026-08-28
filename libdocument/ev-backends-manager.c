@@ -49,7 +49,14 @@ static const gchar *
 backends_dir (void)
 {
 	if (!backendsdir) {
-		backendsdir = g_strdup (EV_BACKENDSDIR);
+		const gchar *env = g_getenv ("XREADER_BACKEND_DIR");
+		if (!env)
+			env = g_getenv ("XREADER_BACKENDS_DIR");
+		if (env && *env) {
+			backendsdir = g_strdup (env);
+		} else {
+			backendsdir = g_strdup (EV_BACKENDSDIR);
+		}
 	}
 
 	return backendsdir;
@@ -129,40 +136,45 @@ ev_backends_manager_load_backend (const gchar *file)
 	return info;
 }
 
-static gboolean
-ev_backends_manager_load (void)
+static void
+ev_backends_manager_load_dir (const gchar *path)
 {
 	GDir        *dir;
 	const gchar *dirent;
 	GError      *error = NULL;
 
-	dir = g_dir_open (backends_dir(), 0, &error);
-	if (!dir) {
-		g_warning ("%s", error->message);
-		g_error_free (error);
+	if (!g_file_test (path, G_FILE_TEST_IS_DIR)) {
+		return;
+	}
 
-		return FALSE;
+	dir = g_dir_open (path, 0, &error);
+	if (!dir) {
+		if (error)
+			g_error_free (error);
+		return;
 	}
 
 	while ((dirent = g_dir_read_name (dir))) {
-		EvBackendInfo *info;
-		gchar         *file;
+		gchar *file = g_build_filename (path, dirent, NULL);
 
-		if (!g_str_has_suffix (dirent, EV_BACKENDS_EXTENSION))
-			continue;
+		if (g_str_has_suffix (dirent, EV_BACKENDS_EXTENSION)) {
+			EvBackendInfo *info = ev_backends_manager_load_backend (file);
+			if (info)
+				ev_backends_list = g_list_prepend (ev_backends_list, info);
+		} else if (g_file_test (file, G_FILE_TEST_IS_DIR)) {
+			ev_backends_manager_load_dir (file);
+		}
 
-		file = g_build_filename (backends_dir(), dirent, NULL);
-		info = ev_backends_manager_load_backend (file);
 		g_free (file);
-
-		if (!info)
-			continue;
-
-		ev_backends_list = g_list_prepend (ev_backends_list, info);
 	}
 
 	g_dir_close (dir);
+}
 
+static gboolean
+ev_backends_manager_load (void)
+{
+	ev_backends_manager_load_dir (backends_dir ());
 	return ev_backends_list != NULL;
 }
 
@@ -195,6 +207,7 @@ _ev_backends_manager_shutdown (void)
 	ev_backends_list = NULL;
 
 	g_free (backendsdir);
+	backendsdir = NULL;
 }
 
 static EvBackendInfo *
@@ -271,6 +284,41 @@ ev_backends_manager_get_document (const gchar *mime_type)
 		gchar *path;
 
 		path = g_module_build_path (backends_dir(), info->module_name);
+		if (!g_file_test (path, G_FILE_TEST_EXISTS)) {
+			/* Check subdirectory in uninstalled build directory */
+			const gchar *subdir = NULL;
+			if (g_str_has_prefix (info->module_name, "pdf"))
+				subdir = "pdf";
+			else if (g_str_has_prefix (info->module_name, "comics"))
+				subdir = "comics";
+			else if (g_str_has_prefix (info->module_name, "djvu"))
+				subdir = "djvu";
+			else if (g_str_has_prefix (info->module_name, "dvi"))
+				subdir = "dvi";
+			else if (g_str_has_prefix (info->module_name, "epub"))
+				subdir = "epub";
+			else if (g_str_has_prefix (info->module_name, "pixbuf"))
+				subdir = "pixbuf";
+			else if (g_str_has_prefix (info->module_name, "ps"))
+				subdir = "ps";
+			else if (g_str_has_prefix (info->module_name, "tiff"))
+				subdir = "tiff";
+			else if (g_str_has_prefix (info->module_name, "xps"))
+				subdir = "xps";
+
+			if (subdir) {
+				gchar *subpath = g_build_filename (backends_dir(), subdir, NULL);
+				gchar *alt_path = g_module_build_path (subpath, info->module_name);
+				g_free (subpath);
+				if (g_file_test (alt_path, G_FILE_TEST_EXISTS)) {
+					g_free (path);
+					path = alt_path;
+				} else {
+					g_free (alt_path);
+				}
+			}
+		}
+
 		info->module = G_TYPE_MODULE (ev_module_new (path, info->resident));
 		g_free (path);
 	}

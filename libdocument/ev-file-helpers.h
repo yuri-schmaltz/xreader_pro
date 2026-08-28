@@ -51,21 +51,21 @@ gchar       *ev_mkdtemp               (const char        *template,
 void         ev_tmp_filename_unlink   (const gchar       *filename);
 void         ev_tmp_file_unlink       (GFile             *file);
 void         ev_tmp_uri_unlink        (const gchar       *uri);
-gboolean     ev_file_is_temp          (GFile             *file) G_GNUC_NONNULL (1) G_GNUC_PURE;
+gboolean     ev_file_is_temp          (GFile             *file) G_GNUC_PURE;
 gboolean     ev_xfer_uri_simple       (const char        *from,
 				       const char        *to,
-				       GError           **error) G_GNUC_NONNULL (1, 2);
+				       GError           **error);
 
 gchar       *ev_file_get_mime_type    (const gchar       *uri,
 				       gboolean           fast,
-				       GError           **error) G_GNUC_NONNULL (1) G_GNUC_MALLOC;
+				       GError           **error) G_GNUC_MALLOC;
 
 gchar       *ev_file_uncompress       (const gchar       *uri,
 				       EvCompressionType  type,
-				       GError           **error) G_GNUC_NONNULL (1) G_GNUC_MALLOC;
+				       GError           **error) G_GNUC_MALLOC;
 gchar       *ev_file_compress         (const gchar       *uri,
 				       EvCompressionType  type,
-				       GError           **error) G_GNUC_NONNULL (1) G_GNUC_MALLOC;
+				       GError           **error) G_GNUC_MALLOC;
 
 
 G_END_DECLS

@@ -66,13 +66,6 @@ ev_tab_manager_finalize (GObject *object)
 		manager->priv->tabs = NULL;
 	}
 	if (manager->priv->reopen_stack) {
-		guint i;
-		for (i = 0; i < manager->priv->reopen_stack->len; i++) {
-			EvTabClosedEntry *entry = g_ptr_array_index (manager->priv->reopen_stack, i);
-			g_clear_object (&entry->document);
-			g_clear_object (&entry->location);
-			g_free (entry);
-		}
 		g_ptr_array_unref (manager->priv->reopen_stack);
 		manager->priv->reopen_stack = NULL;
 	}
@@ -87,7 +80,7 @@ ev_tab_manager_init (EvTabManager *manager)
 
 	manager->priv->tabs = g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref);
 	manager->priv->active_index = -1;
-	manager->priv->reopen_stack = g_ptr_array_new ();
+	manager->priv->reopen_stack = g_ptr_array_new_with_free_func ((GDestroyNotify) ev_tab_closed_entry_free);
 }
 
 static void
@@ -224,7 +217,7 @@ ev_tab_manager_append_tab (EvTabManager *manager,
 	g_return_val_if_fail (EV_IS_TAB_MANAGER (manager), NULL);
 	g_return_val_if_fail (EV_IS_TAB (tab), NULL);
 
-	g_object_ref (tab);
+	g_object_ref_sink (tab);
 	g_ptr_array_add (manager->priv->tabs, tab);
 
 	/* New tab becomes the active one. */
@@ -261,12 +254,11 @@ ev_tab_manager_remove_tab (EvTabManager *manager,
 		g_ptr_array_add (manager->priv->reopen_stack, entry);
 		/* Bounded growth. */
 		while (manager->priv->reopen_stack->len > EV_TAB_MANAGER_REOPEN_STACK_MAX) {
-			EvTabClosedEntry *old = g_ptr_array_index (manager->priv->reopen_stack, 0);
 			g_ptr_array_remove_index (manager->priv->reopen_stack, 0);
-			ev_tab_closed_entry_free (old);
 		}
 	}
 
+	g_object_ref (tab);
 	g_ptr_array_remove_index (manager->priv->tabs, index);
 	g_signal_emit (manager, signals[SIGNAL_TAB_REMOVED], 0, tab);
 
@@ -292,6 +284,8 @@ ev_tab_manager_remove_tab (EvTabManager *manager,
 		/* The active tab was after the removed one.  Decrement. */
 		manager->priv->active_index--;
 	}
+
+	g_object_unref (tab);
 }
 
 void
@@ -341,8 +335,7 @@ ev_tab_manager_reorder_tab (EvTabManager *manager,
 	if (old_index == new_index)
 		return;
 
-	gpointer tab = g_ptr_array_index (manager->priv->tabs, old_index);
-	g_ptr_array_remove_index (manager->priv->tabs, old_index);
+	gpointer tab = g_ptr_array_steal_index (manager->priv->tabs, old_index);
 	g_ptr_array_insert (manager->priv->tabs, new_index, tab);
 
 	/* Update the active index to reflect the new position. */
@@ -371,8 +364,6 @@ ev_tab_manager_reopen_last_closed_tab (EvTabManager *manager)
 	EvTabClosedEntry *entry = g_ptr_array_index (
 		manager->priv->reopen_stack,
 		manager->priv->reopen_stack->len - 1);
-	g_ptr_array_remove_index (manager->priv->reopen_stack,
-	                          manager->priv->reopen_stack->len - 1);
 
 	EvTab *tab = EV_TAB (ev_tab_new (entry->document));
 	if (entry->location)
@@ -381,9 +372,9 @@ ev_tab_manager_reopen_last_closed_tab (EvTabManager *manager)
 		ev_tab_set_page (tab, entry->page);
 
 	ev_tab_manager_append_tab (manager, tab);
-	g_object_unref (tab);
 
-	ev_tab_closed_entry_free (entry);
+	g_ptr_array_remove_index (manager->priv->reopen_stack,
+	                          manager->priv->reopen_stack->len - 1);
 }
 
 guint
@@ -397,9 +388,5 @@ void
 ev_tab_manager_clear_reopen_stack (EvTabManager *manager)
 {
 	g_return_if_fail (EV_IS_TAB_MANAGER (manager));
-	while (manager->priv->reopen_stack->len > 0) {
-		EvTabClosedEntry *e = g_ptr_array_index (manager->priv->reopen_stack, 0);
-		g_ptr_array_remove_index (manager->priv->reopen_stack, 0);
-		ev_tab_closed_entry_free (e);
-	}
+	g_ptr_array_set_size (manager->priv->reopen_stack, 0);
 }

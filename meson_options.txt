@@ -1,3 +1,9 @@
+option('gtk_version',
+    type: 'combo',
+    choices: ['3', '4'],
+    value: '3',
+    description: 'GTK major version to target (3 or 4)'
+)
 option('comics',
     type: 'boolean',
     value: false,

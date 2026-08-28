@@ -20,6 +20,7 @@
 
 #include <config.h>
 #include "ev-tab.h"
+#include "ev-gtk-compat.h"
 
 #include <glib/gi18n.h>
 
@@ -64,7 +65,7 @@ ev_tab_set_property (GObject      *object,
 
 	switch (prop_id) {
 	case PROP_DOCUMENT:
-		tab->priv->document = g_value_get_object (value);
+		tab->priv->document = g_value_dup_object (value);
 		break;
 	case PROP_LOCATION:
 		ev_tab_set_location (tab, g_value_get_object (value));
@@ -151,7 +152,7 @@ ev_tab_init (EvTab *tab)
 	tab->priv->location = NULL;
 
 	tab->priv->box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-	gtk_box_pack_start (GTK_BOX (tab), tab->priv->box, TRUE, TRUE, 0);
+	ev_gtk_box_append (tab, tab->priv->box);
 	gtk_widget_show (tab->priv->box);
 }
 

@@ -10,13 +10,23 @@ test_cases = [
     'testWrongFileExtension.py'
 ]
 
+xvfb_run = find_program('xvfb-run', required: false)
+
 foreach case : test_cases
     test_script = find_program(case)
 
+    if xvfb_run.found()
+        test_exe = xvfb_run
+        test_args = ['-a', test_script.full_path(), xreader.full_path()]
+    else
+        test_exe = test_script
+        test_args = [xreader.full_path()]
+    endif
+
     test(
         case,
-        test_script,
-        args: [xreader.full_path()],
+        test_exe,
+        args: test_args,
         is_parallel: false,
         depends: xreader,
         workdir: join_paths(prefix, bindir),

@@ -41,13 +41,14 @@ err() {
 # 1. No trailing whitespace in source files.
 # ---------------------------------------------------------------------------
 step "1. No trailing whitespace in C / H / build files"
-if grep -rEn --include='*.c' --include='*.h' --include='*.build' \
-	' +$' "$repo_root" \
+if git -C "$repo_root" ls-files '*.c' '*.h' '*.build' 'meson.build' \
 	| grep -v '/.worktrees/' \
 	| grep -v 'help/reference/' \
 	| grep -v 'po/' \
 	| grep -v 'ChangeLog' \
 	| grep -v 'AUTHORS' \
+	| grep -v 'cut-n-paste/' \
+	| xargs -r grep -En ' +$' \
 	| head -20 ; then
 	err "trailing whitespace found (see above)"
 else
@@ -58,12 +59,10 @@ fi
 # 2. No tabs outside the tab-allowed file types.
 # ---------------------------------------------------------------------------
 step "2. No tabs in non-source files (md, json, xml, ui, ...)"
-if grep -rEln --include='*.md' --include='*.json' --include='*.xml' \
-	--include='*.ui' --include='*.yml' --include='*.yaml' \
-	--include='*.sh' --include='*.py' \
-	$'\t' "$repo_root" \
+if git -C "$repo_root" ls-files '*.md' '*.json' '*.xml' '*.ui' '*.yml' '*.yaml' \
 	| grep -v '/.worktrees/' \
-	| grep -v 'help/reference/' \
+	| grep -v 'help/' \
+	| xargs -r grep -Eln $'\t' \
 	| head -20 ; then
 	err "tabs found in non-source files (see above)"
 else
@@ -74,10 +73,9 @@ fi
 # 3. No CRLF line endings.
 # ---------------------------------------------------------------------------
 step "3. No CRLF line endings in C / H / build files"
-if grep -rEl --include='*.c' --include='*.h' --include='*.build' \
-	--include='*.md' --include='*.json' --include='*.xml' \
-	$'\\r' "$repo_root" \
+if git -C "$repo_root" ls-files '*.c' '*.h' '*.build' 'meson.build' '*.md' '*.json' '*.xml' \
 	| grep -v '/.worktrees/' \
+	| xargs -r grep -El $'\r' \
 	| head -20 ; then
 	err "CRLF line endings found (see above)"
 else

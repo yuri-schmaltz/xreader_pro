@@ -724,31 +724,27 @@ extract_one_file(EpubDocument* epub_document,
     /*if we encounter a directory, make a directory inside our temporary folder.*/
     if (directory != NULL && *directory == '\0')
     {
-        g_mkdir(gfilepath->str,0777);
+        g_mkdir(gfilepath->str, 0700);
         goto out;
     }
     else if (directory != NULL && *directory != '\0' ) {
-        gchar* createdir = currentfilename;
-        /*Since a substring can't be longer than the parent string, allocating space equal to the parent's size should suffice*/
-        gchar *createdirname = g_malloc0(strlen(currentfilename));
-        /* Add the name of the directory and subdirectories,if any to a buffer and then create it */
-        gchar *createdirnametemp = createdirname;
-        while ( createdir != directory ) {
-            (*createdirnametemp) = (*createdir);
-            createdirnametemp++;
-            createdir++;
-        }
-        (*createdirnametemp) = '\0';
+        gchar *createdirname = g_strndup (currentfilename, directory - currentfilename);
 
         dir_create = g_string_new(epub_document->tmp_archive_dir);
         g_string_append_printf(dir_create,"/%s",createdirname);
         g_free(createdirname);
 
-        g_mkdir_with_parents(dir_create->str,0777);
-		g_string_free(dir_create,TRUE);
+        g_mkdir_with_parents(dir_create->str, 0700);
+        g_string_free(dir_create,TRUE);
     }
 
     outstream = g_file_create(outfile,G_FILE_CREATE_PRIVATE,NULL,error);
+    if (!outstream) {
+        result = FALSE;
+        g_object_unref(outfile);
+        goto out;
+    }
+
     gpointer buffer = g_malloc0(512);
     while ( (writesize = zip_fread (current_file, buffer, 512) ) != 0 )
     {
@@ -792,11 +788,9 @@ extract_epub_from_container (const gchar* uri,
         return FALSE;
     }
 
-    gchar *epubfilename = g_strrstr(epub_document->archivename,"/");
-    if ( *epubfilename == '/' )
-        epubfilename++ ;
-
-    GString *temporary_sub_directory = g_string_new(epubfilename);
+    gchar *basename = g_path_get_basename (epub_document->archivename);
+    GString *temporary_sub_directory = g_string_new (basename);
+    g_free (basename);
     g_string_append(temporary_sub_directory,"XXXXXX") ;
     epub_document->tmp_archive_dir = ev_mkdtemp(temporary_sub_directory->str, error);
     g_string_free(temporary_sub_directory, TRUE);

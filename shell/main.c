@@ -116,7 +116,7 @@ launch_previewer (void)
 	if (unlink_temp_file)
 		argv[argc++] = (gchar *) "--unlink-tempfile";
 	if (file_arguments)
-		argv[argc++] = file_arguments[0];
+		argv[argc++] = (gchar *) file_arguments[0];
 	argv[argc] = NULL;
 
 	if (g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH,

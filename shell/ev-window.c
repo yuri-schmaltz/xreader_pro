@@ -6918,7 +6918,7 @@ launch_external_uri (EvWindow     *window,
         g_error_free (error);
     }
 
-    /* FIXMEchpe: unref launch context? */
+    g_object_unref (context);
 }
 
 static void
@@ -7236,51 +7236,44 @@ ev_view_popup_cmd_remove_annotation (GtkAction *action,
 }
 
 static void
-ev_view_popup_cmd_annot_properties (GtkAction *action,
-                                    EvWindow  *window)
+ev_window_annotation_properties_dialog_response (GtkDialog                    *dialog,
+                                                  gint                          response_id,
+                                                  EvWindow                     *window)
 {
-    if (window->priv->document->iswebdocument == TRUE ) return;
-
     const gchar                  *author;
     GdkRGBA                       rgba;
     gdouble                       opacity;
     gboolean                      popup_is_open;
-    EvAnnotationPropertiesDialog *dialog;
+    EvAnnotationPropertiesDialog *annot_dialog = EV_ANNOTATION_PROPERTIES_DIALOG (dialog);
     EvAnnotation                 *annot = window->priv->annot;
     EvAnnotationsSaveMask         mask = EV_ANNOTATIONS_SAVE_NONE;
 
-    if (!annot)
-        return;
-
-    dialog = EV_ANNOTATION_PROPERTIES_DIALOG (ev_annotation_properties_dialog_new_with_annotation (window->priv->annot));
-    gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (window));
-    if (gtk_dialog_run (GTK_DIALOG (dialog)) != GTK_RESPONSE_APPLY) {
+    if (response_id != GTK_RESPONSE_APPLY || !annot) {
         gtk_widget_destroy (GTK_WIDGET (dialog));
-
         return;
     }
 
     /* Set annotations changes */
-    author = ev_annotation_properties_dialog_get_author (dialog);
+    author = ev_annotation_properties_dialog_get_author (annot_dialog);
     if (ev_annotation_markup_set_label (EV_ANNOTATION_MARKUP (annot), author))
         mask |= EV_ANNOTATIONS_SAVE_LABEL;
 
-    ev_annotation_properties_dialog_get_rgba (dialog, &rgba);
+    ev_annotation_properties_dialog_get_rgba (annot_dialog, &rgba);
     if (ev_annotation_set_rgba (annot, &rgba))
         mask |= EV_ANNOTATIONS_SAVE_COLOR;
 
-    opacity = ev_annotation_properties_dialog_get_opacity (dialog);
+    opacity = ev_annotation_properties_dialog_get_opacity (annot_dialog);
     if (ev_annotation_markup_set_opacity (EV_ANNOTATION_MARKUP (annot), opacity))
         mask |= EV_ANNOTATIONS_SAVE_OPACITY;
 
-    popup_is_open = ev_annotation_properties_dialog_get_popup_is_open (dialog);
+    popup_is_open = ev_annotation_properties_dialog_get_popup_is_open (annot_dialog);
     if (ev_annotation_markup_set_popup_is_open (EV_ANNOTATION_MARKUP (annot), popup_is_open))
         mask |= EV_ANNOTATIONS_SAVE_POPUP_IS_OPEN;
 
     if (EV_IS_ANNOTATION_TEXT (annot)) {
         EvAnnotationTextIcon icon;
 
-        icon = ev_annotation_properties_dialog_get_text_icon (dialog);
+        icon = ev_annotation_properties_dialog_get_text_icon (annot_dialog);
         if (ev_annotation_text_set_icon (EV_ANNOTATION_TEXT (annot), icon))
             mask |= EV_ANNOTATIONS_SAVE_TEXT_ICON;
     }
@@ -7288,7 +7281,7 @@ ev_view_popup_cmd_annot_properties (GtkAction *action,
 	if (EV_IS_ANNOTATION_TEXT_MARKUP (annot)) {
 		EvAnnotationTextMarkupType markup_type;
 
-		markup_type = ev_annotation_properties_dialog_get_text_markup_type (dialog);
+		markup_type = ev_annotation_properties_dialog_get_text_markup_type (annot_dialog);
 		if (ev_annotation_text_markup_set_markup_type (EV_ANNOTATION_TEXT_MARKUP (annot), markup_type))
 			mask |= EV_ANNOTATIONS_SAVE_TEXT_MARKUP_TYPE;
 	}
@@ -7305,6 +7298,25 @@ ev_view_popup_cmd_annot_properties (GtkAction *action,
     }
 
     gtk_widget_destroy (GTK_WIDGET (dialog));
+}
+
+static void
+ev_view_popup_cmd_annot_properties (GtkAction *action,
+                                    EvWindow  *window)
+{
+    if (window->priv->document->iswebdocument == TRUE ) return;
+
+    EvAnnotationPropertiesDialog *dialog;
+    EvAnnotation                 *annot = window->priv->annot;
+
+    if (!annot)
+        return;
+
+    dialog = EV_ANNOTATION_PROPERTIES_DIALOG (ev_annotation_properties_dialog_new_with_annotation (window->priv->annot));
+    gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (window));
+    g_signal_connect (dialog, "response",
+                      G_CALLBACK (ev_window_annotation_properties_dialog_response), window);
+    gtk_widget_show (GTK_WIDGET (dialog));
 }
 
 static void

@@ -1398,6 +1398,24 @@ ev_view_presentation_constructor (GType                  type,
 	return object;
 }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+static void
+ev_view_presentation_snapshot (GtkWidget   *widget,
+                               GtkSnapshot *snapshot)
+{
+	int width = gtk_widget_get_width (widget);
+	int height = gtk_widget_get_height (widget);
+	graphene_rect_t bounds;
+
+	graphene_rect_init (&bounds, 0, 0, width, height);
+	cairo_t *cr = gtk_snapshot_append_cairo (snapshot, &bounds);
+	if (cr) {
+		ev_view_presentation_draw (widget, cr);
+		cairo_destroy (cr);
+	}
+}
+#endif
+
 static void
 ev_view_presentation_class_init (EvViewPresentationClass *klass)
 {
@@ -1410,7 +1428,11 @@ ev_view_presentation_class_init (EvViewPresentationClass *klass)
 	widget_class->get_preferred_width = ev_view_presentation_get_preferred_width;
 	widget_class->get_preferred_height = ev_view_presentation_get_preferred_height;
 	widget_class->realize = ev_view_presentation_realize;
+#if GTK_CHECK_VERSION(4, 0, 0)
+	widget_class->snapshot = ev_view_presentation_snapshot;
+#else
 	widget_class->draw = ev_view_presentation_draw;
+#endif
 	widget_class->key_press_event = ev_view_presentation_key_press_event;
 	widget_class->button_release_event = ev_view_presentation_button_release_event;
 	widget_class->focus_out_event = ev_view_presentation_focus_out;

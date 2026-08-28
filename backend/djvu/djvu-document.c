@@ -392,6 +392,8 @@ djvu_document_render (EvDocument      *document,
 		cairo_surface_mark_dirty (surface);
 	}
 
+	ddjvu_page_release (d_page);
+
 	return surface;
 }
 

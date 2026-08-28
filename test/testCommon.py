@@ -6,11 +6,14 @@ import signal
 
 os.environ['LANG'] = 'C'
 
-from dogtail.config import config
-config.logDebugToStdOut = True
-config.logDebugToFile = False
-
-import dogtail.procedural as dt
+try:
+    from dogtail.config import config
+    config.logDebugToStdOut = True
+    config.logDebugToFile = False
+    import dogtail.procedural as dt
+except ImportError:
+    # Skip test if dogtail is not installed (exit code 77 is standard GNU/Meson SKIP)
+    sys.exit(77)
 
 def run_app(file=None):
     global pid

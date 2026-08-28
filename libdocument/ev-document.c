@@ -923,8 +923,8 @@ gboolean
 ev_rectangle_intersect (const EvRectangle *a,
                         const EvRectangle *b)
 {
-	g_return_val_if_fail (a != NULL, FALSE);
-	g_return_val_if_fail (b != NULL, FALSE);
+	if (!a || !b)
+		return FALSE;
 
 	/* Boxes that don't overlap on either axis don't overlap. */
 	if (a->x2 < b->x1 || b->x2 < a->x1)

@@ -97,7 +97,7 @@ int _synctex_error(const char * reason,...) {
 		OutputDebugStringA("SyncTeX ERROR: ");
 		len = _vscprintf(reason, arg) + 1;
 		buff = (char*)malloc( len * sizeof(char) );
-		result = vsprintf(buff, reason, arg) +strlen("SyncTeX ERROR: ");
+		result = vsnprintf(buff, len, reason, arg) +strlen("SyncTeX ERROR: ");
 		OutputDebugStringA(buff);
 		OutputDebugStringA("\n");
 		free(buff);

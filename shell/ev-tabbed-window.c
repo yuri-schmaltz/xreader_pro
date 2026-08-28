@@ -25,6 +25,7 @@
 
 #include "ev-tab.h"
 #include "ev-document-factory.h"
+#include "ev-gtk-compat.h"
 
 struct _EvTabbedWindowPrivate
 {
@@ -154,13 +155,13 @@ build_tab_label (EvTab *tab)
 	g_free (title);
 	gtk_label_set_max_width_chars (GTK_LABEL (label), 20);
 	gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
-	gtk_box_pack_start (GTK_BOX (box), label, TRUE, TRUE, 0);
+	ev_gtk_box_append (box, label);
 
 	GtkWidget *close_button = gtk_button_new_from_icon_name (
 		"window-close-symbolic", GTK_ICON_SIZE_MENU);
 	gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
 	gtk_widget_set_focus_on_click (close_button, FALSE);
-	gtk_box_pack_start (GTK_BOX (box), close_button, FALSE, FALSE, 0);
+	ev_gtk_box_append (box, close_button);
 
 	/* g_object_set_data_full so we can look up the tab from the
 	 * close-button signal handler */
@@ -328,26 +329,22 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	gtk_container_add (GTK_CONTAINER (window), window->priv->main_box);
 
 	window->priv->menubar = build_menubar ();
-	gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                    window->priv->menubar, FALSE, FALSE, 0);
+	ev_gtk_box_append (window->priv->main_box, window->priv->menubar);
 
 	window->priv->toolbar = build_toolbar ();
-	gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                    window->priv->toolbar, FALSE, FALSE, 0);
+	ev_gtk_box_append (window->priv->main_box, window->priv->toolbar);
 
 	window->priv->notebook = gtk_notebook_new ();
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (window->priv->notebook), FALSE);
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (window->priv->notebook), TRUE);
-	gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                    window->priv->notebook, TRUE, TRUE, 0);
+	ev_gtk_box_append (window->priv->main_box, window->priv->notebook);
 
 	window->priv->empty_label = gtk_label_new (
 		_("Open a document to start.  Drag a file here, or use File > Open."));
 	gtk_widget_set_vexpand (window->priv->empty_label, TRUE);
 	gtk_widget_set_valign (window->priv->empty_label, GTK_ALIGN_CENTER);
 	gtk_widget_set_halign (window->priv->empty_label, GTK_ALIGN_CENTER);
-	gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                    window->priv->empty_label, TRUE, TRUE, 0);
+	ev_gtk_box_append (window->priv->main_box, window->priv->empty_label);
 
 	/* The empty-state label is also a drop target.  When the
 	 * user drags a file to a window with no tabs, the file
@@ -359,11 +356,10 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	                  G_CALLBACK (on_empty_drop), window);
 
 	window->priv->statusbar = gtk_statusbar_new ();
-	gtk_box_pack_end (GTK_BOX (window->priv->main_box),
-	                  window->priv->statusbar, FALSE, FALSE, 0);
+	ev_gtk_box_append (window->priv->main_box, window->priv->statusbar);
 
 	gtk_widget_show_all (window->priv->main_box);
-	gtk_widget_show (window);
+	gtk_widget_show (GTK_WIDGET (window));
 
 	update_empty_state (window);
 	gtk_window_set_title (GTK_WINDOW (window), _("Xreader"));
@@ -497,7 +493,6 @@ ev_tabbed_window_open_file (EvTabbedWindow *window,
 	EvTab *tab = EV_TAB (ev_tab_new (document));
 	ev_tab_set_location (tab, file);
 	ev_tab_manager_append_tab (window->priv->tab_manager, tab);
-	g_object_unref (tab);
 
 	return tab;
 }

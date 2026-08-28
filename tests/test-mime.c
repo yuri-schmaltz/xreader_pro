@@ -34,7 +34,9 @@ write_tmp_file_with (const guint8 *data, gsize len, const gchar *suffix)
 	gchar *path;
 	gint fd;
 
-	path = g_strdup_printf ("xreader-test-mime-XXXXXX%s", suffix ? suffix : "");
+	path = g_strdup_printf ("%s/xreader-test-mime-XXXXXX%s",
+	                        g_get_tmp_dir (),
+	                        suffix ? suffix : "");
 	fd = g_mkstemp (path);
 	g_assert_cmpint (fd, >=, 0);
 

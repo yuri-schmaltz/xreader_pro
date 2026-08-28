@@ -51,6 +51,8 @@
 #include "ev-document-annotations.h"
 #include "ev-document-attachments.h"
 #include "ev-document-text.h"
+#include "ev-document-signatures.h"
+#include "ev-document-ocr.h"
 #include "ev-selection.h"
 #include "ev-transition-effect.h"
 #include "ev-attachment.h"
@@ -131,6 +133,8 @@ static void pdf_document_file_exporter_iface_init        (EvFileExporterInterfac
 static void pdf_selection_iface_init                     (EvSelectionInterface           *iface);
 static void pdf_document_page_transition_iface_init      (EvDocumentTransitionInterface  *iface);
 static void pdf_document_text_iface_init                 (EvDocumentTextInterface        *iface);
+static void pdf_document_signatures_iface_init           (EvDocumentSignaturesInterface  *iface);
+static void pdf_document_ocr_iface_init                  (EvDocumentOCRInterface         *iface);
 static void pdf_document_thumbnails_get_dimensions       (EvDocumentThumbnails           *document_thumbnails,
 							  EvRenderContext                *rc,
 							  gint                           *width,
@@ -179,6 +183,10 @@ EV_BACKEND_REGISTER_WITH_CODE (PdfDocument, pdf_document,
 								 pdf_document_page_transition_iface_init);
 				 EV_BACKEND_IMPLEMENT_INTERFACE (EV_TYPE_DOCUMENT_TEXT,
 								 pdf_document_text_iface_init);
+				 EV_BACKEND_IMPLEMENT_INTERFACE (EV_TYPE_DOCUMENT_SIGNATURES,
+								 pdf_document_signatures_iface_init);
+				 EV_BACKEND_IMPLEMENT_INTERFACE (EV_TYPE_DOCUMENT_OCR,
+								 pdf_document_ocr_iface_init);
 			 });
 
 static void
@@ -3668,3 +3676,97 @@ pdf_document_document_layers_iface_init (EvDocumentLayersInterface *iface)
 	iface->hide_layer = pdf_document_layers_hide_layer;
 	iface->layer_is_visible = pdf_document_layers_layer_is_visible;
 }
+
+static GList *
+pdf_document_signatures_get_signatures (EvDocumentSignatures *document_signatures)
+{
+	PdfDocument *pdf_document = PDF_DOCUMENT (document_signatures);
+	GList *signatures = NULL;
+	int n_pages, i;
+
+	if (!pdf_document->document)
+		return NULL;
+
+	n_pages = poppler_document_get_n_pages (pdf_document->document);
+	for (i = 0; i < n_pages; i++) {
+		PopplerPage *page = poppler_document_get_page (pdf_document->document, i);
+		if (!page)
+			continue;
+
+		GList *fields = poppler_page_get_form_field_mapping (page);
+		for (GList *l = fields; l; l = g_list_next (l)) {
+			PopplerFormFieldMapping *mapping = (PopplerFormFieldMapping *) l->data;
+			if (mapping && mapping->field && poppler_form_field_get_field_type (mapping->field) == POPPLER_FORM_FIELD_SIGNATURE) {
+				EvSignature *sig = ev_signature_new ();
+				sig->page = i;
+				gchar *name = poppler_form_field_get_name (mapping->field);
+				sig->signer_name = g_strdup (name && *name ? name : _("Digital Signature"));
+				g_free (name);
+				sig->status = EV_SIGNATURE_STATUS_VALID;
+				signatures = g_list_prepend (signatures, sig);
+			}
+		}
+		poppler_page_free_form_field_mapping (fields);
+		g_object_unref (page);
+	}
+
+	return g_list_reverse (signatures);
+}
+
+static gboolean
+pdf_document_signatures_has_signatures (EvDocumentSignatures *document_signatures)
+{
+	GList *sigs = pdf_document_signatures_get_signatures (document_signatures);
+	if (sigs) {
+		g_list_free_full (sigs, (GDestroyNotify) ev_signature_free);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static void
+pdf_document_signatures_iface_init (EvDocumentSignaturesInterface *iface)
+{
+	iface->has_signatures = pdf_document_signatures_has_signatures;
+	iface->get_signatures = pdf_document_signatures_get_signatures;
+}
+
+static gboolean
+pdf_document_ocr_supports_ocr (EvDocumentOCR *document_ocr)
+{
+	return TRUE;
+}
+
+static gchar *
+pdf_document_ocr_get_page_text (EvDocumentOCR *document_ocr,
+                                EvPage        *page,
+                                const gchar   *lang,
+                                GError       **error)
+{
+	PdfDocument *pdf_document = PDF_DOCUMENT (document_ocr);
+	EvRenderContext *rc;
+	cairo_surface_t *surface;
+	gchar *text;
+
+	rc = ev_render_context_new (page, 0, 1.5);
+	surface = ev_document_render (EV_DOCUMENT (pdf_document), rc);
+	g_object_unref (rc);
+
+	if (!surface) {
+		g_set_error_literal (error, EV_DOCUMENT_ERROR, EV_DOCUMENT_ERROR_INVALID,
+		                     _("Failed to render page for OCR"));
+		return NULL;
+	}
+
+	text = ev_document_ocr_recognize_surface (surface, lang, error);
+	cairo_surface_destroy (surface);
+	return text;
+}
+
+static void
+pdf_document_ocr_iface_init (EvDocumentOCRInterface *iface)
+{
+	iface->supports_ocr = pdf_document_ocr_supports_ocr;
+	iface->get_page_ocr_text = pdf_document_ocr_get_page_text;
+}
+

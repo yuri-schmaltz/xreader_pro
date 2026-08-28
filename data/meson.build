@@ -22,6 +22,10 @@ schema_file = install_data(
     install_dir: join_paths(datadir, 'glib-2.0', 'schemas')
 )
 
+gnome.compile_schemas(
+    depend_files: 'org.x.reader.gschema.xml'
+)
+
 desktop_conf = configuration_data()
 desktop_conf.set('XREADER_MIME_TYPES', xreader_mime_types)
 

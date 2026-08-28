@@ -144,10 +144,12 @@ ev_annotation_window_label_changed (EvAnnotationMarkup *annot,
 				    EvAnnotationWindow *window)
 {
 	const gchar *label = ev_annotation_markup_get_label (annot);
-	gchar *markup_text = g_strdup_printf ("<span foreground='black'>%s</span>", label);
+	gchar *escaped = g_markup_escape_text (label ? label : "", -1);
+	gchar *markup_text = g_strdup_printf ("<span foreground='black'>%s</span>", escaped);
 	gtk_window_set_title (GTK_WINDOW (window), label);
 	gtk_label_set_markup (GTK_LABEL (window->title), markup_text);
 	g_free (markup_text);
+	g_free (escaped);
 }
 
 static void
@@ -409,11 +411,13 @@ ev_annotation_window_constructor (GType                  type,
 	gtk_widget_set_name (GTK_WIDGET (window), ev_annotation_get_name (annot));
 	gtk_window_set_title (GTK_WINDOW (window), label);
 
-	markup_text = g_strdup_printf ("<span foreground='black'>%s</span>", label);
+	gchar *escaped = g_markup_escape_text (label ? label : "", -1);
+	markup_text = g_strdup_printf ("<span foreground='black'>%s</span>", escaped);
 
 	gtk_label_set_markup (GTK_LABEL (window->title), markup_text);
 
 	g_free (markup_text);
+	g_free (escaped);
 
 	contents = ev_annotation_get_contents (annot);
 	if (contents) {

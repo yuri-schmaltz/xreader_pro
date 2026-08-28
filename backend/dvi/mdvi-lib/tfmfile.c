@@ -242,7 +242,7 @@ int	tfm_load_file(const char *filename, TFMInfo *info)
 	if(lh > 12) {
 		n = msget1(ptr);
 		if(n > 0) {
-			i = Max(n, 63);
+			i = Min(n, 63);
 			memcpy(info->family, ptr, i);
 			info->family[i] = 0;
 		} else
@@ -344,9 +344,11 @@ static int ofm1_load_file(FILE *in, TFMInfo *info)
 	if(lh > 12) {
 		n = fsget1(in);
 		if(n > 0) {
-			i = Max(n, 63);
+			i = Min(n, 63);
 			fread(info->family, i, 1, in);
 			info->family[i] = 0;
+			if (n > i)
+				fseek(in, n - i, SEEK_CUR);
 		} else
 			strcpy(info->family, "unspecified");
 	}
@@ -521,9 +523,11 @@ static int	ofm_load_file(const char *filename, TFMInfo *info)
 	if(lh > 12) {
 		n = fsget1(in);
 		if(n > 0) {
-			i = Max(n, 63);
+			i = Min(n, 63);
 			fread(info->family, i, 1, in);
 			info->family[i] = 0;
+			if (n > i)
+				fseek(in, n - i, SEEK_CUR);
 		} else
 			strcpy(info->family, "unspecified");
 	}

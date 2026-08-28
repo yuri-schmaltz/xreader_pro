@@ -39,24 +39,37 @@ po_dir = join_paths(meson.source_root(), 'po')
 
 # dependencies
 cairo = dependency('cairo', version: '>= 1.14.0')
-gail = dependency('gail-3.0')
 gio = dependency('gio-2.0', version: '>= 2.36.0')
 glib_version = '2.36.0'
 glib = dependency('glib-2.0', version: '>= ' + glib_version)
 gobject = dependency('gobject-2.0', version: '>= ' + glib_version)
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', version: '>= 2.36.0')
 gmodule = dependency('gmodule-2.0')
-gtk_version = '3.14.0'
-gtk_api_version = '3.0'
-gtk = dependency('gtk+-' + gtk_api_version, version: '>= ' + gtk_version)
-ice = dependency('ice')
-sm = dependency('sm')
-X11 = dependency('x11')
-xapp = dependency('xapp', version: '>= 2.5.0')
+
+gtk_major = get_option('gtk_version')
+if gtk_major == '4'
+    gtk = dependency('gtk4', version: '>= 4.12.0')
+    gtk_unix_print = dependency('gtk4-unix-print', required: get_option('gtk_unix_print'))
+    gail = dependency('', required: false)
+    ice = dependency('', required: false)
+    sm = dependency('', required: false)
+    X11 = dependency('', required: false)
+    add_project_arguments('-DXREADER_GTK4=1', language: ['c', 'cpp'])
+else
+    gail = dependency('gail-3.0')
+    gtk_version = '3.14.0'
+    gtk_api_version = '3.0'
+    gtk = dependency('gtk+-' + gtk_api_version, version: '>= ' + gtk_version)
+    ice = dependency('ice')
+    sm = dependency('sm')
+    X11 = dependency('x11')
+    gtk_unix_print = dependency('gtk+-unix-print-3.0', version: '>= ' + gtk_version, required: get_option('gtk_unix_print'))
+endif
+
+xapp = dependency('xapp', version: '>= 2.5.0', required: false)
 xml = dependency('libxml-2.0', version: '>= 2.5.0')
 zlib = dependency('zlib')
 libsecret = dependency('libsecret-1', version: '>= 0.5', required: get_option('keyring'))
-gtk_unix_print = dependency('gtk+-unix-print-3.0', version: '>= ' + gtk_version, required: get_option('gtk_unix_print'))
 
 enabled_backend_names = []
 backend_subdirs = []
@@ -267,8 +280,8 @@ pc_conf.set('EV_API_VERSION', api_version)
 pc_conf.set('EV_BINARY_VERSION', binary_major_version)
 pc_conf.set('VERSION', version)
 pc_conf.set('GLIB_REQUIRED', glib_version)
-pc_conf.set('GTK_API_VERSION', gtk_api_version)
-pc_conf.set('GTK_REQUIRED', gtk_version)
+pc_conf.set('GTK_API_VERSION', gtk_major == '4' ? '4.0' : '3.0')
+pc_conf.set('GTK_REQUIRED', gtk_major == '4' ? '4.12.0' : '3.14.0')
 
 configure_file(
     input: 'xreader-document.pc.in',

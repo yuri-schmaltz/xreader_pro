@@ -37,9 +37,9 @@
       <default>true</default>
     </key>
     <key name="tabbed-mode" type="b">
-      <default>false</default>
+      <default>true</default>
       <summary>Open documents in tabs in a single window</summary>
-      <description>When true, opening a new document adds a new tab to the existing window instead of creating a new window.  Defaults to false for backward compatibility.</description>
+      <description>When true, opening a new document adds a new tab to the existing window instead of creating a new window.</description>
     </key>
     <child name="default" schema="org.x.reader.default"/>
     <child name="toolbar" schema="org.x.reader.toolbar"/>

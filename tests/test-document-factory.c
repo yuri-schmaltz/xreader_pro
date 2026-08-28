@@ -42,15 +42,10 @@ write_tmp_file_with_contents (const gchar *suffix, const guint8 *data, gsize len
 {
 	gchar *path;
 	gint fd;
-	gchar tmpl[] = "xreader-test-docfactory-XXXXXX";
 
-	if (suffix != NULL) {
-		gchar *full = g_strconcat (tmpl, suffix, NULL);
-		path = g_strdup (full);
-		g_free (full);
-	} else {
-		path = g_strdup (tmpl);
-	}
+	path = g_strdup_printf ("%s/xreader-test-docfactory-XXXXXX%s",
+	                        g_get_tmp_dir (),
+	                        suffix ? suffix : "");
 	fd = g_mkstemp (path);
 	g_assert_cmpint (fd, >=, 0);
 	if (data != NULL && len > 0) {
@@ -282,16 +277,12 @@ test_xfer_uri_simple (void)
 	gchar *src_path = write_tmp_file_with_contents (".src", payload, sizeof (payload) - 1);
 	gchar *src_uri = file_uri_from_path (src_path);
 
-	gchar *dst_path = write_tmp_file_with_contents (".dst", NULL, 0);
-	g_unlink (dst_path);  /* make sure the dst does not exist */
-	g_free (dst_path);
-	gchar *dst_uri = g_strconcat ("file://", g_get_tmp_dir (),
-	                              "/xreader-xfer-dst-XXXXXX", NULL);
-	/* Use mkstemp to get a unique dst name. */
-	gint fd = g_mkstemp (dst_uri);
+	gchar *dst_tmpl = g_strdup_printf ("%s/xreader-xfer-dst-XXXXXX", g_get_tmp_dir ());
+	gint fd = g_mkstemp (dst_tmpl);
 	g_assert_cmpint (fd, >=, 0);
 	close (fd);
-	g_unlink (dst_uri);  /* we want ev_xfer_uri_simple to create it */
+	g_unlink (dst_tmpl);  /* we want ev_xfer_uri_simple to create it */
+	gchar *dst_uri = file_uri_from_path (dst_tmpl);
 
 	GError *err = NULL;
 	gboolean ok = ev_xfer_uri_simple (src_uri, dst_uri, &err);
@@ -309,7 +300,8 @@ test_xfer_uri_simple (void)
 	g_object_unref (dst_file);
 
 	g_unlink (src_path);
-	g_unlink (dst_uri);
+	g_unlink (dst_tmpl);
+	g_free (dst_tmpl);
 	g_free (src_path);
 	g_free (src_uri);
 	g_free (dst_uri);

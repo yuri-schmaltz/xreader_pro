@@ -5104,6 +5104,24 @@ draw_one_page (EvView       *view,
 	}
 }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+static void
+ev_view_snapshot (GtkWidget   *widget,
+                  GtkSnapshot *snapshot)
+{
+	int width = gtk_widget_get_width (widget);
+	int height = gtk_widget_get_height (widget);
+	graphene_rect_t bounds;
+
+	graphene_rect_init (&bounds, 0, 0, width, height);
+	cairo_t *cr = gtk_snapshot_append_cairo (snapshot, &bounds);
+	if (cr) {
+		ev_view_draw (widget, cr);
+		cairo_destroy (cr);
+	}
+}
+#endif
+
 /*** GObject functions ***/
 
 static void
@@ -5628,7 +5646,11 @@ ev_view_class_init (EvViewClass *class)
 	object_class->finalize = ev_view_finalize;
 
 	widget_class->realize = ev_view_realize;
+#if GTK_CHECK_VERSION(4, 0, 0)
+	widget_class->snapshot = ev_view_snapshot;
+#else
 	widget_class->draw = ev_view_draw;
+#endif
 	widget_class->button_press_event = ev_view_button_press_event;
 	widget_class->motion_notify_event = ev_view_motion_notify_event;
 	widget_class->button_release_event = ev_view_button_release_event;

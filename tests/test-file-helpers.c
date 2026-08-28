@@ -284,6 +284,37 @@ test_mkstemp_file_destroy_notify (void)
 	g_object_unref (file);
 }
 
+static void
+test_tmp_file_unlink_outside_tmp (void)
+{
+	/* Files outside temp directories must NOT be deleted by ev_tmp_file_unlink / ev_tmp_uri_unlink */
+	GFile *file = g_file_new_for_path ("/etc/passwd");
+	ev_tmp_file_unlink (file);
+	g_assert_true (g_file_test ("/etc/passwd", G_FILE_TEST_EXISTS));
+	g_object_unref (file);
+
+	ev_tmp_uri_unlink ("file:///etc/passwd");
+	g_assert_true (g_file_test ("/etc/passwd", G_FILE_TEST_EXISTS));
+}
+
+static void
+test_tmp_file_unlink_in_tmp (void)
+{
+	GError *error = NULL;
+	GFile *file = ev_mkstemp_file ("xreader-tmp-file-unlink-XXXXXX", &error);
+	g_assert_nonnull (file);
+	g_assert_no_error (error);
+
+	gchar *path = g_file_get_path (file);
+	g_assert_true (g_file_test (path, G_FILE_TEST_EXISTS));
+
+	ev_tmp_file_unlink (file);
+	g_assert_false (g_file_test (path, G_FILE_TEST_EXISTS));
+
+	g_free (path);
+	g_object_unref (file);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -309,6 +340,10 @@ main (int argc, char *argv[])
 	                 test_tmp_filename_unlink_outside_tmp);
 	g_test_add_func ("/ev-file-helpers/tmp-filename-unlink-null",
 	                 test_tmp_filename_unlink_null);
+	g_test_add_func ("/ev-file-helpers/tmp-file-unlink-outside-tmp",
+	                 test_tmp_file_unlink_outside_tmp);
+	g_test_add_func ("/ev-file-helpers/tmp-file-unlink-in-tmp",
+	                 test_tmp_file_unlink_in_tmp);
 	g_test_add_func ("/ev-file-helpers/mkstemp-file-destroy-notify",
 	                 test_mkstemp_file_destroy_notify);
 

@@ -1113,16 +1113,15 @@ TFMInfo *mdvi_ps_get_metrics(const char *fontname)
 	basefile = strrchr(psfont, '/');
 	if(basefile == NULL)
 		basefile = psfont;
-	baselen = strlen(basefile);
 	ext = strrchr(basefile, '.');
 	if(ext != NULL)
 		*ext = 0;
-	if(baselen + 4 < 64)
+	baselen = strlen(basefile);
+	if(baselen + 5 < sizeof(buffer))
 		afmfile = &buffer[0];
 	else
 		afmfile = mdvi_malloc(baselen + 5);
-	strcpy(afmfile, basefile);
-	strcpy(afmfile + baselen, ".afm");
+	g_snprintf(afmfile, baselen + 5, "%s.afm", basefile);
 	/* we don't need this anymore */
 	mdvi_free(psfont);
 	DEBUG((DBG_FMAP, "(ps) %s: looking for `%s'\n",

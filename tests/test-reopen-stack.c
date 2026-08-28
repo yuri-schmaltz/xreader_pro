@@ -62,7 +62,7 @@ make_fake_document (void)
 static EvTab *
 make_fake_tab_with_location (const gchar *path)
 {
-	EvTab *tab = EV_TAB (ev_tab_new (make_fake_document ()));
+	EvTab *tab = EV_TAB (g_object_ref_sink (ev_tab_new (make_fake_document ())));
 	if (path) {
 		GFile *file = g_file_new_for_path (path);
 		ev_tab_set_location (tab, file);
@@ -214,7 +214,7 @@ test_clear_reopen_stack (void)
 int
 main (int argc, char *argv[])
 {
-	g_test_init (&argc, &argv, NULL);
+	gtk_test_init (&argc, &argv, NULL);
 
 	g_test_add_func ("/reopen/empty-noop",          test_empty_reopen_noop);
 	g_test_add_func ("/reopen/restores-tab",        test_reopen_restores_tab);
