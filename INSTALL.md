@@ -1,79 +1,88 @@
-# Installation & Build Guide for Xreader Pro
+# Installing & Building Xreader Pro
 
-## 📦 Method 1: Pre-Built Debian Package (.deb) — Recommended
+## Option 1: Standalone Debian Package (`.deb`) — Recommended
 
-The easiest way to install or update Xreader Pro on Ubuntu, Debian, Linux Mint, and derivatives:
+The easiest way to install or update Xreader Pro on Ubuntu, Debian, Linux Mint, or LMDE:
 
 ```bash
-# 1. Download the latest single .deb package
-wget -O /tmp/xreader-pro_4.8.1-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.1-1/xreader-pro_4.8.1-1_amd64.deb
+# 1. Download the pre-built .deb from GitHub Releases
+wget https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.0-1/xreader-pro_4.8.0-1_amd64.deb
 
 # 2. Install using dpkg
-sudo dpkg -i /tmp/xreader-pro_4.8.1-1_amd64.deb
+sudo dpkg -i xreader-pro_4.8.0-1_amd64.deb
 
-# 3. Resolve any runtime dependencies automatically
+# 3. Resolve any missing shared runtime libraries
 sudo apt-get install -f
 ```
 
 ---
 
-## 🛠️ Method 2: Building from Source with Meson & Ninja
+## Option 2: Generating a Fresh `.deb` Package Locally
+
+You can generate your own standalone `.deb` package containing all backends, schemas, and icons using the bundled build script:
+
+```bash
+# 1. Clone repository and install build tools
+git clone https://github.com/yuri-schmaltz/xreader_pro.git
+cd xreader_pro
+
+# 2. Run the automated Debian package builder
+./tools/build-deb.sh
+
+# 3. Install the generated package
+sudo dpkg -i xreader-pro_4.8.0-1_amd64.deb
+sudo apt-get install -f
+```
+
+---
+
+## Option 3: Building & Installing from Source (Meson + Ninja)
 
 ### 1. Install Build Dependencies
 
-On Debian, Ubuntu, or Linux Mint:
+#### On Debian / Ubuntu / Linux Mint:
 ```bash
 sudo apt update
-sudo apt install -y git meson ninja-build dpkg-dev \
-    libgtk-3-dev libgtk-4-dev \
-    libpoppler-glib-dev libspectre-dev libtiff-dev libgxps-dev \
-    libwebkit2gtk-4.1-dev libsecret-1-dev libxapp-dev libarchive-dev \
-    libkpathsea-dev libtesseract-dev tesseract-ocr \
-    gobject-introspection libgirepository1.0-dev
+sudo apt install -y git meson ninja-build build-essential \
+    libgtk-3-dev libglib2.0-dev libpoppler-glib-dev libspectre-dev \
+    libtiff-dev libgxps-dev libwebkit2gtk-4.1-dev libsecret-1-dev \
+    libxapp-dev libarchive-dev libkpathsea-dev libtesseract-dev \
+    tesseract-ocr tesseract-ocr-eng tesseract-ocr-por
 ```
 
-### 2. Clone the Repository
-
+#### For Modern GTK4 Build (Optional):
 ```bash
-git clone https://github.com/yuri-schmaltz/xreader_pro.git
-cd xreader_pro
+sudo apt install -y libgtk-4-dev
 ```
 
-### 3. Configure the Build
-
+### 2. Configure with Meson
 ```bash
-# Standard GTK3 build:
-meson setup build --prefix=/usr -Ddeprecated_warnings=false -Dgtk_version=3
+# Standard GTK3 Release Build:
+meson setup build --prefix=/usr --buildtype=release
 
-# Or modern GTK4 build:
-# meson setup build --prefix=/usr -Ddeprecated_warnings=false -Dgtk_version=4
+# Alternatively, Modern GTK4 Build:
+meson setup build-gtk4 --prefix=/usr --buildtype=release -Dgtk_version=4
 ```
 
-### 4. Compile & Test
-
+### 3. Compile and Run Test Suite
 ```bash
-# Compile
+# Build
 ninja -C build
 
 # Run automated tests
 meson test -C build --verbose
 ```
 
-### 5. Install
-
+### 4. Install System-Wide
 ```bash
 sudo ninja -C build install
 sudo ldconfig
 sudo glib-compile-schemas /usr/share/glib-2.0/schemas
+sudo update-desktop-database
 ```
 
----
-
-## 📦 Method 3: Generating a Standalone `.deb` Package
-
-You can generate a standalone Debian installer package directly from source:
-
+### 5. Running Xreader Pro
 ```bash
-./tools/build-deb.sh
+xreader [FILE1.pdf] [FILE2.pdf]
 ```
-This produces `xreader-pro_4.8.1-1_amd64.deb` in the project root directory.
+

@@ -98,6 +98,10 @@ Xreader uses GObject throughout.  The public types are:
   - `EvPage` (GObject, in `libdocument/`)
   - `EvDocumentInfo` (boxed type, in `libdocument/`)
   - `EvDocumentSecurity` (boxed type, in `libdocument/`)
+  - `EvDocumentSignatures`, `EvSignature` (interface + GObject,
+    in `libdocument/` for X.509 PKI verification)
+  - `EvDocumentOCR`, `EvOCRResult` (interface + GObject,
+    in `libdocument/` for Tesseract OCR extraction)
   - `EvLink`, `EvLinkAction`, `EvLinkDest` (boxed types,
     in `libdocument/`)
   - `EvAttachment` (GObject, in `libdocument/`)
@@ -131,13 +135,25 @@ Xreader uses GObject throughout.  The public types are:
     `EvJobThumbnail`, `EvJobPresentation` (GObjects,
     in `libview/`)
   - `EvApplication` (GApplication, in `shell/`)
-  - `EvWindow` (GtkApplicationWindow, in `shell/`)
+  - `EvWindow` (GtkApplicationWindow, in `shell/` featuring
+    native multi-document full-width tab management)
+  - `EvTabManager`, `EvTab` (GObjects, in `shell/`)
   - `EvPropertiesView` (GtkBox, in `shell/`)
   - `EvMetadata` (boxed type, in `shell/`)
 
 For each, there's a `.c` and `.h` file.  The `.h` file
 defines the GType macros, the public API, and the gtk-doc
 block; the `.c` file implements the type.
+
+## GTK3 / GTK4 Multi-Target Compatibility Layer
+
+`libmisc/ev-gtk-compat.h` provides unified abstraction wrappers
+bridging GTK3 and GTK4 APIs:
+  - `ev_gtk_box_append()` & `ev_gtk_box_prepend()`
+  - `ev_gtk_widget_set_cursor_name()`
+  - `ev_g_action_activate()`
+  - `ev_gtk_dialog_run_async()`
+  - `GtkSnapshot` hardware-accelerated rendering pathways.
 
 ## The GApplication / GAction migration
 
