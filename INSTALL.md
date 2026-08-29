@@ -1,87 +1,79 @@
-# Building from source
-### Option 1 (The easy way - Debian/Ubuntu only):
-```
-sudo apt install devscripts equivs
-git clone https://github.com/linuxmint/xreader.git
-cd xreader
+# Installation & Build Guide for Xreader Pro
 
-# install dependencies (you need to confirm the installation)
-sudo mk-build-deps -ir
+## 📦 Method 1: Pre-Built Debian Package (.deb) — Recommended
 
-# build
-dpkg-buildpackage
+The easiest way to install or update Xreader Pro on Ubuntu, Debian, Linux Mint, and derivatives:
 
-# install
-sudo dpkg -i ../*.deb
-```
-### Option 2 (Everywhere else):
-#### The following options can be enabled during build:
-- GConf Support
-- GTK+ Unix Print
-- Keyring Support
- - DBUS Support
- - SM client support
- - Thumbnailer
- - Previewer
- - Gtk-Doc Support
- - Debug mode
- - GObject Introspection
+```bash
+# 1. Download the latest single .deb package
+wget -O /tmp/xreader-pro_4.8.0-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.0-1/xreader-pro_4.8.0-1_amd64.deb
 
-##### Install dependencies (these are subject to change - check the first section of`debian/control` if you seem to be missing anything):
-```
-apt install git dpkg-dev
-apt install gobject-introspection libdjvulibre-dev libgail-3-dev          \
-            libgirepository1.0-dev libgtk-3-dev libgxps-dev               \
-            libkpathsea-dev libpoppler-glib-dev libsecret-1-dev           \
-            libspectre-dev libtiff-dev libwebkit2gtk-4.1-dev libxapp-dev  \
-            libzip-dev                                                  \
-            mate-common meson xsltproc yelp-tools
-```
-##### Download the source-code to your machine:
-```
-git clone https://github.com/linuxmint/xreader.git
-cd xreader
-```
-##### Configure the build with Meson:
-```
-# The following configuration installs all binaries,
-# libraries, and shared files into /usr/local, and
-# enables all available options:
+# 2. Install using dpkg
+sudo dpkg -i /tmp/xreader-pro_4.8.0-1_amd64.deb
 
-meson builddir \
-  --prefix=/usr/local \
-  --buildtype=plain \
-  -D deprecated_warnings=false \
-  -D djvu=true \
-  -D dvi=true \
-  -D t1lib=true \
-  -D pixbuf=true \
-  -D comics=true \
-  -D introspection=true
+# 3. Resolve any runtime dependencies automatically
+sudo apt-get install -f
 ```
-##### Build and install (sudo or root is needed for install):
-```
-ninja -C builddir
-sudo ninja -C builddir install
-```
-##### Run:
-```
-/usr/local/bin/xreader
 
-# If you want to test the daemon
-usr/local/lib/x86_64-linux-gnu/xreaderd
+---
 
-You can enable debugging with the G_MESSAGES_DEBUG environmental     \
-variable.
+## 🛠️ Method 2: Building from Source with Meson & Ninja
+
+### 1. Install Build Dependencies
+
+On Debian, Ubuntu, or Linux Mint:
+```bash
+sudo apt update
+sudo apt install -y git meson ninja-build dpkg-dev \
+    libgtk-3-dev libgtk-4-dev \
+    libpoppler-glib-dev libspectre-dev libtiff-dev libgxps-dev \
+    libwebkit2gtk-4.1-dev libsecret-1-dev libxapp-dev libarchive-dev \
+    libkpathsea-dev libtesseract-dev tesseract-ocr \
+    gobject-introspection libgirepository1.0-dev
 ```
-##### Uninstall:
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/yuri-schmaltz/xreader_pro.git
+cd xreader_pro
 ```
-ninja -C debian/build uninstall
+
+### 3. Configure the Build
+
+```bash
+# Standard GTK3 build:
+meson setup build --prefix=/usr -Ddeprecated_warnings=false -Dgtk_version=3
+
+# Or modern GTK4 build:
+# meson setup build --prefix=/usr -Ddeprecated_warnings=false -Dgtk_version=4
 ```
-##### Tests:
-- Dependencies:
-    - python-dogtail [ https://fedorahosted.org/dogtail/ ]
-    - python-pyatspi2 [ http://download.gnome.org/sources/pyatspi/ ]
+
+### 4. Compile & Test
+
+```bash
+# Compile
+ninja -C build
+
+# Run automated tests
+meson test -C build --verbose
 ```
-ninja test -C debian/build/
+
+### 5. Install
+
+```bash
+sudo ninja -C build install
+sudo ldconfig
+sudo glib-compile-schemas /usr/share/glib-2.0/schemas
 ```
+
+---
+
+## 📦 Method 3: Generating a Standalone `.deb` Package
+
+You can generate a standalone Debian installer package directly from source:
+
+```bash
+./tools/build-deb.sh
+```
+This produces `xreader-pro_4.8.0-1_amd64.deb` in the project root directory.
