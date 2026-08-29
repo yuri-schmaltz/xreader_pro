@@ -2351,14 +2351,26 @@ ev_window_open_uri (EvWindow       *ev_window,
 
     /* Tab label UI */
     new_tab->tab_label_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+    gtk_widget_set_margin_start (new_tab->tab_label_box, 4);
+    gtk_widget_set_margin_end (new_tab->tab_label_box, 2);
+    gtk_widget_set_margin_top (new_tab->tab_label_box, 2);
+    gtk_widget_set_margin_bottom (new_tab->tab_label_box, 2);
+
+    GtkWidget *icon = gtk_image_new_from_icon_name ("x-office-document-symbolic", GTK_ICON_SIZE_MENU);
+    gtk_widget_set_margin_end (icon, 2);
+    ev_gtk_box_append (new_tab->tab_label_box, icon);
+
     new_tab->tab_label = gtk_label_new (new_tab->title);
-    gtk_label_set_max_width_chars (GTK_LABEL (new_tab->tab_label), 22);
-    gtk_label_set_ellipsize (GTK_LABEL (new_tab->tab_label), PANGO_ELLIPSIZE_END);
+    gtk_label_set_width_chars (GTK_LABEL (new_tab->tab_label), 10);
+    gtk_label_set_max_width_chars (GTK_LABEL (new_tab->tab_label), 24);
+    gtk_label_set_ellipsize (GTK_LABEL (new_tab->tab_label), PANGO_ELLIPSIZE_MIDDLE);
+    gtk_widget_set_margin_end (new_tab->tab_label, 4);
     ev_gtk_box_append (new_tab->tab_label_box, new_tab->tab_label);
 
     new_tab->close_btn = gtk_button_new_from_icon_name ("window-close-symbolic", GTK_ICON_SIZE_MENU);
     gtk_button_set_relief (GTK_BUTTON (new_tab->close_btn), GTK_RELIEF_NONE);
     gtk_widget_set_focus_on_click (new_tab->close_btn, FALSE);
+    gtk_widget_set_tooltip_text (new_tab->close_btn, _("Close tab"));
     g_object_set_data (G_OBJECT (new_tab->close_btn), "tab-page-num", GINT_TO_POINTER (g_list_length (ev_window->priv->doc_tabs)));
     g_signal_connect (new_tab->close_btn, "clicked", G_CALLBACK (on_tab_close_btn_clicked), ev_window);
     ev_gtk_box_append (new_tab->tab_label_box, new_tab->close_btn);
@@ -8040,6 +8052,17 @@ ev_window_init (EvWindow *ev_window)
     gtk_container_add (GTK_CONTAINER (ev_window->priv->toolbar_revealer), ev_window->priv->toolbar);
     gtk_widget_show (ev_window->priv->toolbar);
 
+    /* Full-width Tab Bar */
+    ev_window->priv->tab_notebook = gtk_notebook_new ();
+    gtk_notebook_set_scrollable (GTK_NOTEBOOK (ev_window->priv->tab_notebook), TRUE);
+    gtk_notebook_set_show_border (GTK_NOTEBOOK (ev_window->priv->tab_notebook), FALSE);
+    gtk_notebook_set_show_tabs (GTK_NOTEBOOK (ev_window->priv->tab_notebook), FALSE);
+    g_signal_connect (ev_window->priv->tab_notebook, "switch-page",
+                      G_CALLBACK (on_tab_notebook_switch_page), ev_window);
+    gtk_box_pack_start (GTK_BOX (ev_window->priv->main_box),
+                        ev_window->priv->tab_notebook,
+                        FALSE, FALSE, 0);
+
     ev_window->priv->hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
 
     g_signal_connect (ev_window->priv->hpaned,
@@ -8141,16 +8164,6 @@ ev_window_init (EvWindow *ev_window)
             sidebar_widget);
 
     ev_window->priv->view_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-
-    ev_window->priv->tab_notebook = gtk_notebook_new ();
-    gtk_notebook_set_scrollable (GTK_NOTEBOOK (ev_window->priv->tab_notebook), TRUE);
-    gtk_notebook_set_show_border (GTK_NOTEBOOK (ev_window->priv->tab_notebook), FALSE);
-    gtk_notebook_set_show_tabs (GTK_NOTEBOOK (ev_window->priv->tab_notebook), FALSE);
-    g_signal_connect (ev_window->priv->tab_notebook, "switch-page",
-                      G_CALLBACK (on_tab_notebook_switch_page), ev_window);
-    gtk_box_pack_start (GTK_BOX (ev_window->priv->view_box),
-                        ev_window->priv->tab_notebook,
-                        FALSE, FALSE, 0);
 
     ev_window->priv->scrolled_window =
             GTK_WIDGET (g_object_new (GTK_TYPE_SCROLLED_WINDOW,
