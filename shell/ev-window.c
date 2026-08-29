@@ -1474,16 +1474,20 @@ ev_window_setup_document (EvWindow *ev_window)
 
     if (ev_window->priv->current_tab_index >= 0 && ev_window->priv->doc_tabs) {
         EvWindowDocTab *t = (EvWindowDocTab *) g_list_nth_data (ev_window->priv->doc_tabs, ev_window->priv->current_tab_index);
-        if (t && t->tab_label) {
+        if (t && t->tab_label && ev_window->priv->uri) {
+            GFile *f = g_file_new_for_uri (ev_window->priv->uri);
+            gchar *base = g_file_get_basename (f);
+            gtk_label_set_text (GTK_LABEL (t->tab_label), base);
+            g_free (base);
+            g_object_unref (f);
+
             const gchar *doc_title = ev_document_get_title (document);
-            if (!doc_title || strlen (doc_title) == 0) {
-                GFile *f = g_file_new_for_uri (ev_window->priv->uri);
-                gchar *base = g_file_get_basename (f);
-                gtk_label_set_text (GTK_LABEL (t->tab_label), base);
-                g_free (base);
-                g_object_unref (f);
+            if (doc_title && strlen (doc_title) > 0) {
+                gchar *tip = g_strdup_printf ("%s\n%s", doc_title, ev_window->priv->uri);
+                gtk_widget_set_tooltip_text (t->tab_label_box, tip);
+                g_free (tip);
             } else {
-                gtk_label_set_text (GTK_LABEL (t->tab_label), doc_title);
+                gtk_widget_set_tooltip_text (t->tab_label_box, ev_window->priv->uri);
             }
         }
     }
@@ -2361,9 +2365,8 @@ ev_window_open_uri (EvWindow       *ev_window,
     ev_gtk_box_append (new_tab->tab_label_box, icon);
 
     new_tab->tab_label = gtk_label_new (new_tab->title);
-    gtk_label_set_width_chars (GTK_LABEL (new_tab->tab_label), 10);
-    gtk_label_set_max_width_chars (GTK_LABEL (new_tab->tab_label), 24);
     gtk_label_set_ellipsize (GTK_LABEL (new_tab->tab_label), PANGO_ELLIPSIZE_MIDDLE);
+    gtk_label_set_max_width_chars (GTK_LABEL (new_tab->tab_label), 60);
     gtk_widget_set_margin_end (new_tab->tab_label, 4);
     ev_gtk_box_append (new_tab->tab_label_box, new_tab->tab_label);
 
@@ -8059,6 +8062,30 @@ ev_window_init (EvWindow *ev_window)
     gtk_notebook_set_show_tabs (GTK_NOTEBOOK (ev_window->priv->tab_notebook), FALSE);
     g_signal_connect (ev_window->priv->tab_notebook, "switch-page",
                       G_CALLBACK (on_tab_notebook_switch_page), ev_window);
+
+    GtkCssProvider *tab_css = gtk_css_provider_new ();
+    gtk_css_provider_load_from_data (tab_css,
+        "notebook.xreader-tab-bar tab {"
+        "  padding: 4px 10px;"
+        "  min-height: 28px;"
+        "  max-width: 420px;"
+        "}"
+        "notebook.xreader-tab-bar tab:checked, notebook.xreader-tab-bar tab:active {"
+        "  font-weight: bold;"
+        "}"
+        "notebook.xreader-tab-bar tab button {"
+        "  padding: 1px 2px;"
+        "  min-width: 16px;"
+        "  min-height: 16px;"
+        "  border-radius: 50%;"
+        "}",
+        -1, NULL);
+    gtk_style_context_add_class (gtk_widget_get_style_context (ev_window->priv->tab_notebook), "xreader-tab-bar");
+    gtk_style_context_add_provider (gtk_widget_get_style_context (ev_window->priv->tab_notebook),
+                                    GTK_STYLE_PROVIDER (tab_css),
+                                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref (tab_css);
+
     gtk_box_pack_start (GTK_BOX (ev_window->priv->main_box),
                         ev_window->priv->tab_notebook,
                         FALSE, FALSE, 0);
