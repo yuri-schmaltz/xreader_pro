@@ -4,7 +4,7 @@ set -e
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${REPO_DIR}/build"
 PKG_ROOT="${BUILD_DIR}/deb_pkg_root"
-DEB_NAME="xreader-pro_4.8.0-1_amd64.deb"
+DEB_NAME="xreader-pro_4.8.1-1_amd64.deb"
 
 echo "==> 1. Configuring, compiling and staging files..."
 meson setup "${BUILD_DIR}" --reconfigure --prefix=/usr --libexecdir=/usr/libexec
@@ -18,7 +18,7 @@ chmod 755 "${PKG_ROOT}/DEBIAN"
 
 cat <<'DEB_CTRL' > "${PKG_ROOT}/DEBIAN/control"
 Package: xreader-pro
-Version: 4.8.0-1
+Version: 4.8.1-1
 Section: graphics
 Priority: optional
 Architecture: amd64

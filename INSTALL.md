@@ -6,10 +6,10 @@ The easiest way to install or update Xreader Pro on Ubuntu, Debian, Linux Mint, 
 
 ```bash
 # 1. Download the latest single .deb package
-wget -O /tmp/xreader-pro_4.8.0-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.0-1/xreader-pro_4.8.0-1_amd64.deb
+wget -O /tmp/xreader-pro_4.8.1-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.1-1/xreader-pro_4.8.1-1_amd64.deb
 
 # 2. Install using dpkg
-sudo dpkg -i /tmp/xreader-pro_4.8.0-1_amd64.deb
+sudo dpkg -i /tmp/xreader-pro_4.8.1-1_amd64.deb
 
 # 3. Resolve any runtime dependencies automatically
 sudo apt-get install -f
@@ -76,4 +76,4 @@ You can generate a standalone Debian installer package directly from source:
 ```bash
 ./tools/build-deb.sh
 ```
-This produces `xreader-pro_4.8.0-1_amd64.deb` in the project root directory.
+This produces `xreader-pro_4.8.1-1_amd64.deb` in the project root directory.

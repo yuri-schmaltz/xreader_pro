@@ -65,7 +65,19 @@
    <mimetype>image/tiff</mimetype>
    <mimetype>image/x-xpixmap</mimetype>
  </mimetypes>
- <releases>
+  <releases>
+    <release version="4.8.1" date="2026-08-28">
+      <description>
+        <p>Xreader Pro 4.8.1 release:</p>
+        <ul>
+          <li>Native tabbed document browsing embedded in EvWindow with full-width bar and natural title sizing</li>
+          <li>Enterprise X.509 PKI Digital Signature verification</li>
+          <li>Integrated Tesseract Optical Character Recognition (OCR)</li>
+          <li>GTK4 modern architecture and hardware-accelerated rendering compatibility</li>
+          <li>Comprehensive security hardening across DVI, SyncTeX, EPUB, and DjVu backends</li>
+        </ul>
+      </description>
+    </release>
     <release version="4.8.0" date="2026-07-30">
       <description>
         <p>30 self-PRs landed in the yuri-schmaltz/xreader fork, covering:</p>

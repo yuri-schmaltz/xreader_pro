@@ -1,3 +1,17 @@
+xreader (4.8.1-1) zena; urgency=medium
+
+  * Xreader Pro 4.8.1 Release:
+    - [TABS] Embedded native multi-document tab bar directly into EvWindow.
+    - [TABS] Dynamic natural tab width calculation up to 60 characters with smart center ellipsizing.
+    - [TABS] Full-width tab bar placement below toolbar with file icons and tooltips.
+    - [TABS] Multi-document command line and D-Bus reuse of active window.
+    - [SECURITY] Hardened DVI, SyncTeX, EPUB and DjVu backends.
+    - [FEATURE] Integrated X.509 PKI Digital Signature verification.
+    - [FEATURE] Built-in Optical Character Recognition (OCR) with Tesseract.
+    - [GTK4] Compatibility modernization and GtkSnapshot rendering support.
+
+ -- Yuri Schmaltz <yuri.schmaltz@gmail.com>  Thu, 28 Aug 2026 23:20:00 -0300
+
 xreader (4.8.0) zena; urgency=medium
 
   * 30 self-PRs landed in the yuri-schmaltz/xreader fork

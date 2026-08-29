@@ -45,10 +45,10 @@ Download and install the latest pre-compiled release package in one step:
 
 ```bash
 # 1. Download the latest .deb package
-wget -O /tmp/xreader-pro_4.8.0-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.0-1/xreader-pro_4.8.0-1_amd64.deb
+wget -O /tmp/xreader-pro_4.8.1-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.1-1/xreader-pro_4.8.1-1_amd64.deb
 
 # 2. Install the package
-sudo dpkg -i /tmp/xreader-pro_4.8.0-1_amd64.deb
+sudo dpkg -i /tmp/xreader-pro_4.8.1-1_amd64.deb
 
 # 3. Resolve any missing system runtime dependencies
 sudo apt-get install -f
@@ -62,8 +62,8 @@ To update an existing installation:
 
 ```bash
 # Download and reinstall the latest release package
-wget -O /tmp/xreader-pro_4.8.0-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/latest/download/xreader-pro_4.8.0-1_amd64.deb
-sudo dpkg -i /tmp/xreader-pro_4.8.0-1_amd64.deb
+wget -O /tmp/xreader-pro_4.8.1-1_amd64.deb https://github.com/yuri-schmaltz/xreader_pro/releases/latest/download/xreader-pro_4.8.1-1_amd64.deb
+sudo dpkg -i /tmp/xreader-pro_4.8.1-1_amd64.deb
 sudo apt-get install -f
 ```
 
@@ -123,7 +123,7 @@ sudo ninja -C build install
 ```bash
 ./tools/build-deb.sh
 ```
-This generates `xreader-pro_4.8.0-1_amd64.deb` in the repository root.
+This generates `xreader-pro_4.8.1-1_amd64.deb` in the repository root.
 
 ---
 
