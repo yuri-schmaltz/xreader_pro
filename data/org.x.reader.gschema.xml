@@ -37,7 +37,7 @@
       <default>true</default>
     </key>
     <key name="tabbed-mode" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Open documents in tabs in a single window</summary>
       <description>When true, opening a new document adds a new tab to the existing window instead of creating a new window.</description>
     </key>

@@ -768,28 +768,6 @@ ev_application_open_uri_in_window (EvApplication  *application,
     }
 }
 
-static EvWindow *
-ev_application_get_active_or_first_window (EvApplication *application,
-                                           GdkScreen     *screen)
-{
-    GList *windows = gtk_application_get_windows (GTK_APPLICATION (application));
-    GList *l;
-
-    GtkWindow *active = gtk_application_get_active_window (GTK_APPLICATION (application));
-    if (active && EV_IS_WINDOW (active)) {
-        if (!screen || gtk_window_get_screen (active) == screen)
-            return EV_WINDOW (active);
-    }
-
-    for (l = windows; l != NULL; l = l->next) {
-        if (!EV_IS_WINDOW (l->data))
-            continue;
-        if (!screen || gtk_window_get_screen (GTK_WINDOW (l->data)) == screen)
-            return EV_WINDOW (l->data);
-    }
-    return NULL;
-}
-
 static void
 _ev_application_open_uri_at_dest (EvApplication  *application,
                                   const gchar    *uri,
@@ -799,22 +777,16 @@ _ev_application_open_uri_at_dest (EvApplication  *application,
                                   const gchar    *search_string,
                                   guint           timestamp)
 {
-    GSettings *settings = g_settings_new ("org.x.reader");
-    gboolean tabbed_mode = g_settings_get_boolean (settings, "tabbed-mode");
-    g_object_unref (settings);
+    EvWindow  *empty_window;
+    GtkWidget *new_window;
 
-    EvWindow  *target_window = NULL;
+    empty_window = ev_application_get_empty_window (application, screen);
+    if (empty_window)
+        new_window = GTK_WIDGET (empty_window);
+    else
+        new_window = ev_application_create_window (application);
 
-    if (tabbed_mode) {
-        target_window = ev_application_get_active_or_first_window (application, screen);
-    } else {
-        target_window = ev_application_get_empty_window (application, screen);
-    }
-
-    if (!target_window)
-        target_window = EV_WINDOW (ev_application_create_window (application));
-
-    ev_application_open_uri_in_window (application, uri, target_window,
+    ev_application_open_uri_in_window (application, uri, EV_WINDOW (new_window),
                                        screen, dest, mode,
                                        search_string,
                                        timestamp);
