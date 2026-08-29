@@ -1353,18 +1353,7 @@ ev_application_get_dot_dir (EvApplication *application,
 GtkWidget *
 ev_application_create_window (EvApplication *application)
 {
-	GSettings *settings;
-	gboolean   tabbed;
-
 	g_return_val_if_fail (EV_IS_APPLICATION (application), NULL);
-
-	settings = g_settings_new ("org.x.reader");
-	tabbed = g_settings_get_boolean (settings, "tabbed-mode");
-	g_object_unref (settings);
-
-	if (tabbed) {
-		return ev_tabbed_window_new (GTK_APPLICATION (application));
-	}
 
 	return ev_window_new ();
 }
