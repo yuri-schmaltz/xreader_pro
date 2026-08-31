@@ -88,12 +88,12 @@ get_image_extensions(void)
 	extensions = g_hash_table_new_full (g_str_hash, g_str_equal,
 					    g_free, NULL);
 	for (l = formats; l != NULL; l = l->next) {
-		int i;
+		guint j;
 		gchar **ext = gdk_pixbuf_format_get_extensions (l->data);
 
-		for (i = 0; ext[i] != NULL; i++) {
+		for (j = 0; ext[j] != NULL; j++) {
 			g_hash_table_insert (extensions,
-					     g_strdup (ext[i]),
+					     g_strdup (ext[j]),
 					     GINT_TO_POINTER (FORMAT_SUPPORTED));
 		}
 
@@ -463,12 +463,12 @@ comics_document_get_page_size (EvDocument *document,
 
 	while (1) {
 		const char *name;
-		GError *error = NULL;
+		GError *iter_error = NULL;
 
-		if (!ev_archive_read_next_header (comics_document->archive, &error)) {
-			if (error != NULL) {
-				g_warning ("Fatal error handling archive (%s): %s", G_STRFUNC, error->message);
-				g_error_free (error);
+		if (!ev_archive_read_next_header (comics_document->archive, &iter_error)) {
+			if (iter_error != NULL) {
+				g_warning ("Fatal error handling archive (%s): %s", G_STRFUNC, iter_error->message);
+				g_error_free (iter_error);
 			}
 			break;
 		}
@@ -481,19 +481,19 @@ comics_document_get_page_size (EvDocument *document,
 
 			left = ev_archive_get_entry_size (comics_document->archive);
 			read = ev_archive_read_data (comics_document->archive, buf,
-						     MIN(BLOCK_SIZE, left), &error);
+						     MIN(BLOCK_SIZE, left), &iter_error);
 			while (read > 0 && !info.got_info) {
-				if (!gdk_pixbuf_loader_write (loader, (guchar *) buf, read, &error)) {
+				if (!gdk_pixbuf_loader_write (loader, (guchar *) buf, read, &iter_error)) {
 					read = -1;
 					break;
 				}
 				left -= read;
 				read = ev_archive_read_data (comics_document->archive, buf,
-							     MIN(BLOCK_SIZE, left), &error);
+							     MIN(BLOCK_SIZE, left), &iter_error);
 			}
 			if (read < 0) {
-				g_warning ("Fatal error reading '%s' in archive: %s", name, error->message);
-				g_error_free (error);
+				g_warning ("Fatal error reading '%s' in archive: %s", name, iter_error->message);
+				g_error_free (iter_error);
 			}
 			break;
 		}

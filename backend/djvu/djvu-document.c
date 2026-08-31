@@ -448,11 +448,10 @@ djvu_text_copy (DjvuDocument *djvu_document,
 		djvu_handle_events (djvu_document, TRUE, NULL);
 
 	if (page_text != miniexp_nil) {
-		DjvuTextPage *page = djvu_text_page_new (page_text);
-		
-		text = djvu_text_page_copy (page, rectangle);
-		djvu_text_page_free (page);
-		ddjvu_miniexp_release (djvu_document->d_document, page_text);
+                DjvuTextPage *text_page = djvu_text_page_new (page_text);
+
+                text = djvu_text_page_copy (text_page, rectangle);
+                djvu_text_page_free (text_page);
 	}
 
 	return text;

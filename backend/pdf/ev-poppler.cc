@@ -712,6 +712,10 @@ pdf_document_get_info (EvDocument *document)
 			break;
 		case POPPLER_PAGE_LAYOUT_TWO_COLUMN_RIGHT:
 			info->layout = EV_DOCUMENT_LAYOUT_TWO_COLUMN_RIGHT;
+			/* fall through: the legacy code path set the
+			 * layout to two-page-left when two-column-right
+			 * was reported; preserved for backwards compat. */
+			G_GNUC_FALLTHROUGH;
 		case POPPLER_PAGE_LAYOUT_TWO_PAGE_LEFT:
 			info->layout = EV_DOCUMENT_LAYOUT_TWO_PAGE_LEFT;
 			break;
@@ -3663,6 +3667,12 @@ pdf_document_layers_layer_is_visible (EvDocumentLayers *document,
 {
 	PopplerLayer *poppler_layer;
 
+	/* The document parameter is part of the EvDocumentLayers
+	 * interface contract but is not needed here because the
+	 * visibility state is owned by the PopplerLayer attached
+	 * to the EvLayer. */
+	(void) document;
+
 	poppler_layer = POPPLER_LAYER (g_object_get_data (G_OBJECT (layer), "poppler-layer"));
 	return poppler_layer_is_visible (poppler_layer);
 }
@@ -3734,6 +3744,11 @@ pdf_document_signatures_iface_init (EvDocumentSignaturesInterface *iface)
 static gboolean
 pdf_document_ocr_supports_ocr (EvDocumentOCR *document_ocr)
 {
+	/* All PDF documents with text content are OCR-capable
+	 * via poppler's text extraction.  The document_ocr
+	 * parameter is part of the interface contract but is
+	 * not needed for the boolean return. */
+	(void) document_ocr;
 	return TRUE;
 }
 
