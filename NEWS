@@ -18,22 +18,81 @@ vulnerability; see SECURITY.md for the responsible-disclosure
 policy.
 
 
+Changes in 4.8.1 (unreleased -- stabilization gauntlet)
+------------------------------------------------------
+
+Highlights:
+* **9 backends enabled by default** (pdf, ps, tiff, xps, epub,
+  djvu, dvi, comics, pixbuf).  Previously only 5/9 were on by
+  default.
+* **+6 new stress/leak tests** in tests/test-tabbed-window.c
+  (type-registered, 100-tab stress, reorder, reopen-stack bound
+  at 10, signal counts, get-by-location).  Test suite now 15
+  active C cases.
+* **+3 new shims** in libmisc/ev-gtk-compat.h
+  (ev_gtk_box_pack_start, ev_gtk_widget_show_all,
+  ev_gtk_container_add).  35 call sites across 6 shell/*.c
+  files now use the shims, making them dual-target GTK3/GTK4.
+* **+1 E2E CI job** (.github/workflows/ci-checks.yml::e2e-python)
+  runs the 9 Python Dogtail tests under Xvfb on every PR.
+* **Section banners** added to ev-window.c (god object navigation).
+* **tools/apply-gtk-compat.py** automates the GTK 3 -> shim
+  rewrite for future work.
+* **README.md aligned** with the actual 4.8.x state (was
+  claiming "tabbed by default" and "GTK 4 ready" both of which
+  are not yet true).
+* **+1 file removed** (io.github.yuri_schmaltz.Xreader.json,
+  the orphaned Flatpak manifest from v4.7.0).
+
+Build, CI, packaging
+~~~~~~~~~~~~~~~~~~~~
+
+Build, CI, packaging
+~~~~~~~~~~~~~~~~~~~~
+* meson_options.txt: djvu, dvi, comics, pixbuf default to true.
+* backend/dvi/mdvi-lib/fontmap.c: added missing <glib.h> include
+  for g_snprintf under modern toolchains.
+* test/meson.build: documented the required: false semantics for
+  xvfb-run (Python tests are silently skipped on systems without
+  xvfb-run, run in CI where xvfb is installed).
+
+Tests
+~~~~~
+* New: tests/test-tabbed-window.c (6 cases).
+* Existing 14 tests unchanged (test-tab-manager, test-reopen-stack,
+  test-tabbed-integration, test-multi-tab-documents, test-ocr,
+  test-signatures, test-page-render, test-form-field, test-mime,
+  test-rect-intersect, test-session-roundtrip, test-file-helpers,
+  test-image, test-document-factory).
+* New CI job: e2e-python runs the 9 Python tests under Xvfb
+  in addition to the 15 C unit tests.
+
+
 Changes in 4.8.0-1 (2026-08-28)
 ---------------------------------
 
 Highlights:
-* Native Multi-Document Tabbed View by default in EvWindow with full-width
-  presentation, middle truncation, document icons, and per-tab close buttons.
-* Keyboard shortcuts for tabs: Ctrl+Tab / Ctrl+Shift+Tab (switch), Ctrl+W (close),
-  and Ctrl+Shift+T (reopen last closed tab from LIFO history).
-* Enterprise X.509 Digital Signature verification engine (EvDocumentSignatures)
-  integrated with Poppler backend.
-* Integrated OCR text extraction engine (EvDocumentOCR) powered by Tesseract.
-* Full GTK4 modernization path & dual-target build option (-Dgtk_version=4).
-* Cross-version GTK compatibility layer (libmisc/ev-gtk-compat.h).
-* Hardened security gauntlet: DVI TFM font buffer overflows, DjVu leaks, EPUB
-  sandboxed permissions (0700), and SyncTeX parser bounds checks.
+* Optional Multi-Document Tabbed View via EvTabbedWindow (opt-in
+  through the `--tabbed`/`-T` CLI flag or the `tabbed-mode`
+  GSettings key).  When enabled, a single window hosts multiple
+  documents as tabs with per-tab page/zoom/find state and
+  middle-truncated tab labels with document icons.
+* Keyboard shortcuts for tabs: Ctrl+Tab / Ctrl+Shift+Tab (switch),
+  Ctrl+W (close), and Ctrl+Shift+T (reopen last closed tab from
+  a LIFO history stack bounded to 10 entries).
+* Enterprise X.509 Digital Signature verification engine
+  (EvDocumentSignatures) integrated with the Poppler backend.
+* Integrated OCR text extraction engine (EvDocumentOCR) powered
+  by Tesseract.
+* Dual-target GTK build option (`-Dgtk_version=3` or `-Dgtk_version=4`).
+* Cross-version GTK compatibility layer (libmisc/ev-gtk-compat.h)
+  with shims for box/container/dialog APIs.
+* Hardened security gauntlet: DVI TFM font buffer overflows,
+  DjVu leaks, EPUB sandboxed permissions (0700), and SyncTeX
+  parser bounds checks.
 * Single-file Debian package generation tools (tools/build-deb.sh).
+* 9 backends enabled by default: pdf, ps, tiff, xps, epub,
+  djvu, dvi, comics, pixbuf.
 
 
 Build, CI, packaging

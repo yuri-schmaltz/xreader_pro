@@ -38,7 +38,8 @@ Supporting directories:
     pane).
   - `cut-n-paste/` -- third-party code that has been
     vendored in (e.g. `eggdesktopfile`).
-  - `tests/` -- unit tests (52 cases, 7 executables).
+  - `tests/` -- unit tests (15 C cases across 12 executables, plus
+    9 Python E2E tests under `test/` driven by python-dogtail).
   - `fuzz/` -- libFuzzer harnesses (2 harnesses, 11 seeds).
   - `tools/` -- developer scripts (`check-source.sh`,
     `lint-commits.sh`, `lint-branches.sh`, `mailmap-cleanup.sh`,
