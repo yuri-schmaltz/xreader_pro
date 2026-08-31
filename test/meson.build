@@ -10,6 +10,12 @@ test_cases = [
     'testWrongFileExtension.py'
 ]
 
+/* xvfb-run is used to run the Python E2E tests under a virtual
+ * X server.  It is required in CI (where xvfb is installed by
+ * the workflow) but optional in dev environments.  When xvfb-run
+ * is not available, the Python tests are silently skipped -- this
+ * matches the existing behaviour so local builds without xvfb
+ * continue to work. */
 xvfb_run = find_program('xvfb-run', required: false)
 
 foreach case : test_cases

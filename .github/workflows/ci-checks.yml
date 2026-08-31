@@ -694,3 +694,73 @@ jobs:
             --werror
       - name: Build
         run: ninja -C build-clang
+
+  # Run the 9 Python E2E tests under Xvfb.  These tests launch
+  # the actual xreader binary and drive it through the GTK menu
+  # system via Dogtail (accessibility framework), so they need
+  # a real GdkDisplay.  They are skipped on systems without
+  # xvfb-run (see test/meson.build).
+  #
+  # This is the only CI job that exercises the full EvWindow +
+  # shell + backends stack, so it is the highest-fidelity
+  # integration test we have.  Coverage: 9 cases (file/edit/help/
+  # view/zoom/go/bookmarks menus + encrypted file + file reloading
+  # + wrong-file-extension).
+  e2e-python:
+    name: E2E Python tests (xvfb)
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:24.04
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential \
+            meson \
+            pkg-config \
+            python3 \
+            python3-dogtail \
+            libgtk-3-dev \
+            libpoppler-glib-dev \
+            libgxps-dev \
+            libspectre-dev \
+            libkpathsea-dev \
+            libdjvulibre-dev \
+            libtiff-dev \
+            libsecret-1-dev \
+            libxapp-dev \
+            libsm-dev \
+            libice-dev \
+            libx11-dev \
+            libxml2-dev \
+            libarchive-dev \
+            libgirepository1.0-dev \
+            libwebkit2gtk-4.1-dev \
+            xapp-symbolic-icons \
+            shared-mime-info \
+            gettext \
+            intltool \
+            desktop-file-utils \
+            xvfb \
+            ca-certificates
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: |
+          meson setup build-e2e \
+            --buildtype=debugoptimized \
+            -Ddocs=false \
+            -Dhelp_files=false
+      - name: Build
+        run: ninja -C build-e2e
+      - name: Install (to /usr, so that the E2E tests can find the binary)
+        run: |
+          DESTDIR=/tmp/xreader-install meson install -C build-e2e
+          # The Python tests run `xreader` from /usr/bin (workdir).
+          # Use a wrapper that points to the staged binary.
+          sudo mkdir -p /usr/bin
+          sudo cp /tmp/xreader-install/usr/bin/xreader /usr/bin/xreader
+          sudo ldconfig
+      - name: Run E2E Python tests
+        run: xvfb-run -a meson test -C build-e2e --print-errorlogs
