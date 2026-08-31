@@ -24,6 +24,9 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include <glib.h>
+#include <glib/gprintf.h>
+
 #include "mdvi.h"
 #include "private.h"
 

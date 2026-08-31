@@ -6,18 +6,18 @@ option('gtk_version',
 )
 option('comics',
     type: 'boolean',
-    value: false,
-    description: 'Support for the comic book (cbr) backend'
+    value: true,
+    description: 'Support for the comic book (cbr/cbz/cb7) backend'
 )
 option('djvu',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Support for the djvu backend'
 )
 option('dvi',
     type: 'boolean',
-    value: false,
-    description: 'Support for the dvi backend'
+    value: true,
+    description: 'Support for the dvi backend (requires kpathsea + libspectre)'
 )
 option('t1lib',
     type: 'boolean',
@@ -41,8 +41,8 @@ option('pdf',
 )
 option('pixbuf',
     type: 'boolean',
-    value: false,
-    description: 'Support for the generic pixbuf image backend'
+    value: true,
+    description: 'Support for the generic pixbuf image backend (opens any GdkPixbuf-supported format)'
 )
 option('ps',
     type: 'boolean',
