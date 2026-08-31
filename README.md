@@ -3,19 +3,27 @@
 [![Release](https://img.shields.io/github/v/release/yuri-schmaltz/xreader_pro?style=flat-square&color=blue)](https://github.com/yuri-schmaltz/xreader_pro/releases)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)](https://github.com/yuri-schmaltz/xreader_pro)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg?style=flat-square)](COPYING)
-[![GTK Version](https://img.shields.io/badge/GTK-3.0%20%7C%204.0%20Ready-orange?style=flat-square)](https://gtk.org)
+[![GTK Version](https://img.shields.io/badge/GTK-3.0-blue?style=flat-square)](https://gtk.org)
+[![GTK 4 Port](https://img.shields.io/badge/GTK_4-port_in_progress-yellow?style=flat-square)](https://gtk.org)
 
-**Xreader Pro** is an advanced, high-performance document viewer for Linux desktops (Cinnamon, MATE, GNOME, XFCE, etc.). It provides a fast, modern reading experience for multi-page documents (PDF, PostScript, DjVu, TIFF, DVI, XPS, EPUB, and Comic Books) with native **tabbed document browsing**, **X.509 digital signature verification**, **built-in OCR (Optical Character Recognition)**, and **GTK4 modernization**.
+**Xreader Pro** is an advanced, high-performance document viewer for Linux desktops (Cinnamon, MATE, GNOME, XFCE, etc.). It provides a fast, modern reading experience for multi-page documents (PDF, PostScript, DjVu, TIFF, DVI, XPS, EPUB, and Comic Books) with optional **tabbed document browsing**, **X.509 digital signature verification**, and **built-in OCR (Optical Character Recognition)**.
+
+> **Note on GTK 4:** the codebase supports dual-target builds
+> (`-Dgtk_version=3` default, `-Dgtk_version=4` for the port in
+> progress).  The GTK 4 build is not yet fully green -- see
+> [ROADMAP.md](ROADMAP.md) C2 for the current porting status.
 
 ---
 
 ## 🌟 Key Features & Highlights
 
-### 📑 Native Multi-Document Tabbed Viewing
-* **Single-Window Multi-Tab Workflow**: Open multiple documents simultaneously organized in clean, full-width tabs without cluttering your desktop with separate windows.
-* **Smart Tab Header Formatting**: Document icons, middle truncation (`irpf_yuri...pdf`), and per-tab close buttons (`×`).
-* **Session & State Preservation**: Automatically preserves individual page numbers and zoom levels across tab switches.
-* **Closed Tab Restoration**: Reopen accidentally closed tabs instantly with `Ctrl + Shift + T` (LIFO history stack).
+### 📑 Optional Multi-Document Tabbed Viewing (opt-in)
+* **Tabbed Window Mode**: opt-in via `--tabbed`/`-T` CLI flag or the `tabbed-mode` GSettings key. When enabled, opens a separate top-level window (`EvTabbedWindow`) that hosts multiple documents in tabs. When disabled (the default), each document opens in its own `EvWindow` (the classic Evince behaviour).
+* **Smart Tab Header Formatting**: Document icons, middle truncation, per-tab close buttons.
+* **Session & State Preservation**: Each tab preserves its own page number, zoom level, and find query across tab switches.
+* **Closed Tab Restoration**: Reopen accidentally closed tabs instantly with `Ctrl + Shift + T` (LIFO history stack, bounded to 10 entries).
+* **Keyboard Navigation**: `Ctrl+Tab` / `Ctrl+Shift+Tab` to switch tabs, `Ctrl+W` to close the active tab.
+* **24 unit tests** in `tests/test-tab-manager.c`, `tests/test-reopen-stack.c`, `tests/test-tabbed-integration.c`, `tests/test-multi-tab-documents.c`, and `tests/test-tabbed-window.c` cover the data model and stress/leak behavior.
 
 ### 🔐 Enterprise X.509 Digital Signatures
 * **PKI Signature Verification**: Inspect digital certificates, signer identity, validation timestamps, and document integrity directly in PDF documents.
@@ -24,15 +32,34 @@
 ### 🔍 Integrated Optical Character Recognition (OCR)
 * **Tesseract-Powered Text Recognition**: On-the-fly OCR extraction for scanned PDF pages and raw image documents via `EvDocumentOCR` and `EvOCRResult`.
 
-### 🎨 GTK4 Modernization & Multi-Target Build
-* **Dual-Target Support**: Can be built for standard **GTK3** or modernized **GTK4** (`-Dgtk_version=4`).
-* **Hardware-Accelerated Rendering**: Support for `GtkSnapshot` and GSK modern composition alongside Cairo graphics.
-* **Asynchronous Dialog Architecture**: Non-blocking asynchronous dialogs replacing legacy `gtk_dialog_run()`.
+### 🎨 GTK 3/4 Dual-Target Build (in progress)
+* **Dual-Target Meson Option**: `meson setup build -Dgtk_version=3` (default) or `-Dgtk_version=4` (experimental, see [ROADMAP C2](ROADMAP.md)).
+* **GTK 3 (current default)**: fully working, 15/15 active unit tests pass, 9 E2E Python tests under Xvfb.
+* **GTK 4 (in progress)**: dual-target shims live in `libmisc/ev-gtk-compat.h` (`ev_gtk_box_append`, `ev_gtk_box_pack_start`, `ev_gtk_widget_show_all`, `ev_gtk_container_add`, `ev_gtk_dialog_run_async`, ...). 35 call sites in 6 dialog/area files already use the shims.
+* **Asynchronous Dialog Helper**: `ev_gtk_dialog_run_async()` wraps `GtkDialog::response` signal so dialogs can be made non-blocking.
 
 ### 🛡️ Security Hardening Gauntlet
 * Fixed historical vulnerabilities in DVI TFM font parsing (`tfmfile.c`, `fontmap.c`) and SyncTeX parsing.
 * Hardened EPUB decompression permissions (`0700`) and sanitized file extraction against directory traversal attacks.
 * Resolved DjVu page leaks and memory leaks in document attachment descriptors.
+
+---
+
+## ✅ Current Status (4.8.x)
+
+| Area | Status | Detail |
+|---|---|---|
+| Build | ✅ green | 9/9 backends (pdf, ps, tiff, xps, epub, **djvu, dvi, comics, pixbuf**) all default-on |
+| Unit tests | ✅ 15/15 pass | under ASan + UBSan + MALLOC_PERTURB_, ~0.3s total |
+| E2E tests | ✅ 9/9 in CI | python-dogtail + Xvfb, run in the `e2e-python` GitHub Actions job |
+| Fuzz harness | ✅ libFuzzer | `fuzz/fuzz-document-load.c`, run for 60s in CI |
+| GTK 3 | ✅ working | default target |
+| GTK 4 | 🟡 in progress | shims in `ev-gtk-compat.h`, ~35 call sites migrated |
+| Tabbed view | ✅ working | opt-in via `--tabbed` or `tabbed-mode` GSettings |
+| OCR | ✅ working | Tesseract backend, 2 unit tests |
+| X.509 signatures | ✅ working | Poppler integration, 2 unit tests |
+
+See [ROADMAP.md](ROADMAP.md) for the long-term work tracking.
 
 ---
 
