@@ -268,6 +268,8 @@ static void     backend_name##_class_intern_init (gpointer klass)		\
 }										\
 										\
 G_MODULE_EXPORT GType								\
+register_xreader_backend (GTypeModule *module);				\
+G_MODULE_EXPORT GType								\
 register_xreader_backend (GTypeModule *module)					\
 {										\
 	const GTypeInfo our_info = {  				                \

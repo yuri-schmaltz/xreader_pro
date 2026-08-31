@@ -61,6 +61,16 @@ void       ev_sidebar_thumbnails_zoom_out     (EvSidebarThumbnails *sidebar_thum
 void       ev_sidebar_thumbnails_zoom_reset   (EvSidebarThumbnails *sidebar_thumbnails);
 void       ev_sidebar_thumbnails_set_size     (EvSidebarThumbnails *sidebar_thumbnails, gint size);
 
+/* GAction callbacks used by the thumbnail sidebar.  Forward-
+ * declared here to satisfy -Wmissing-prototypes; full
+ * definitions are in ev-sidebar-thumbnails.c. */
+void       ev_sidebar_thumbnails_cmd_zoom_in   (GtkWidget *widget,
+                                                EvSidebarThumbnails *sidebar_thumbnails);
+void       ev_sidebar_thumbnails_cmd_zoom_out  (GtkWidget *widget,
+                                                EvSidebarThumbnails *sidebar_thumbnails);
+void       ev_sidebar_thumbnails_cmd_zoom_reset (GtkWidget *widget,
+                                                 EvSidebarThumbnails *sidebar_thumbnails);
+
 G_END_DECLS
 
 #endif /* __EV_SIDEBAR_THUMBNAILS_H__ */

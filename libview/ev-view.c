@@ -2025,7 +2025,7 @@ ev_view_get_focused_area (EvView       *view,
 	return TRUE;
 }
 
-void
+static void
 ev_view_set_focused_element (EvView *view,
 			     EvMapping *element_mapping,
 			     gint page)
@@ -2549,7 +2549,7 @@ ev_view_form_field_choice_create_widget (EvView      *view,
 }
 
 
-void
+static void
 ev_view_focus_form_field (EvView      *view,
 			  EvFormField *field)
 {
@@ -4069,9 +4069,18 @@ ev_view_button_press_event (GtkWidget      *widget,
 }
 
 static void
+destroy_child_cb (GtkWidget *widget, gpointer data)
+{
+	(void) data;
+	gtk_widget_destroy (widget);
+}
+
+static void
 ev_view_remove_all (EvView *view)
 {
-	gtk_container_foreach (GTK_CONTAINER (view), (GtkCallback) gtk_widget_destroy, NULL);
+	gtk_container_foreach (GTK_CONTAINER (view),
+	                       (GtkCallback) destroy_child_cb,
+	                       NULL);
 }
 
 /*** Drag and Drop ***/
@@ -4831,7 +4840,7 @@ focus_annotation (EvView       *view,
 	EvMapping    *mapping = view->focus_annotation;
 	EvAnnotation *annot = (EvAnnotation *)mapping->data;
 
-	if (ev_annotation_get_page_index (annot) != page)
+	if ((gint) ev_annotation_get_page_index (annot) != page)
 		return;
 
 	_ev_view_transform_doc_rect_to_view_rect (view, page, &mapping->area, &rect);

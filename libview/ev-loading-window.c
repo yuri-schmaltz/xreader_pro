@@ -113,8 +113,9 @@ ev_loading_window_init (EvLoadingWindow *window)
 		bg.alpha = 1.0;
 	}
 
-        gtk_widget_override_background_color (widget, GTK_STATE_NORMAL, &bg);
-        gtk_widget_override_color (widget, GTK_STATE_NORMAL, &fg);
+        GtkStyleContext *ctx = gtk_widget_get_style_context (widget);
+        gtk_style_context_add_class (ctx, "xreader-loading-window");
+        
 }
 
 static GObject *

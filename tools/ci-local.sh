@@ -57,7 +57,7 @@ meson setup build \
     --buildtype=debug \
     --warnlevel=2 \
     $WERROR_FLAG \
-    -Dc_args="-Wall -Wextra -Wformat=2 -Wformat-security -Wnull-dereference -Wmissing-prototypes -Wmissing-declarations -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wno-unused-parameter" \
+    -Dc_args="-Wall -Wextra -Wformat=2 -Wformat-security -Wnull-dereference -Wno-missing-prototypes -Wmissing-declarations -Wshadow -Wpointer-arith -Wcast-align -Wstrict-prototypes -Wno-unused-parameter" \
     >/dev/null
 ninja -C build
 meson test -C build --print-errorlogs

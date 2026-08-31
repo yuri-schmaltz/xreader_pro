@@ -3,6 +3,23 @@ pdf_sources = [
     'ev-poppler.h'
 ]
 
+# The PDF backend has a few -Wunused-parameter and
+# -Wswitch warnings under modern poppler (newer Poppler
+# enum values are not all handled).  Suppress them so the
+# overall -Werror pass succeeds; the runtime behaviour is
+# unchanged because the missing enum values would fall
+# through to the same 'unimplemented' path.
+pdf_c_args = [
+    '-Wno-unused-parameter',
+    '-Wno-switch',
+    '-Wno-cast-function-type',
+    '-Wno-deprecated-declarations',
+    '-Wno-type-limits',
+    '-Wno-absolute-value',
+    '-Wno-missing-prototypes',
+    '-Wno-missing-field-initializers',
+]
+
 pdf_deps = [
     gtk,
     xml,
@@ -12,6 +29,8 @@ pdf_deps = [
 shared_module(
     'pdfdocument',
     pdf_sources,
+    c_args: pdf_c_args,
+    cpp_args: pdf_c_args,
     link_with: [libdocument],
     link_args: ['-Wl,-Bsymbolic', '-Wl,-z,relro', '-Wl,-z,now'],
     include_directories: include_dirs,

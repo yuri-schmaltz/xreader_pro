@@ -75,7 +75,7 @@ typedef struct {
 
 #define CCSIZE		256
 static ColorCache	color_cache[CCSIZE];
-static int		cc_entries;
+static Uint		cc_entries;
 
 #define GAMMA_DIFF	0.005
 

@@ -363,6 +363,11 @@ void
 ev_sidebar_thumbnails_cmd_zoom_in (GtkWidget *widget,
                                    EvSidebarThumbnails *sidebar_thumbnails)
 {
+    /* 'widget' is unused here -- it is part of the GAction
+     * activation signature but the action operates on the
+     * sidebar_thumbnails argument which is bound by the
+     * GActionGroup binding. */
+    (void) widget;
     if (ev_sidebar_thumbnails_can_zoom_in (sidebar_thumbnails))
         ev_sidebar_thumbnails_zoom_in (sidebar_thumbnails);
 }
@@ -371,6 +376,7 @@ void
 ev_sidebar_thumbnails_cmd_zoom_out (GtkWidget *widget,
                                     EvSidebarThumbnails *sidebar_thumbnails)
 {
+    (void) widget;
     if (ev_sidebar_thumbnails_can_zoom_out (sidebar_thumbnails))
         ev_sidebar_thumbnails_zoom_out (sidebar_thumbnails);
 }
@@ -378,6 +384,7 @@ void
 ev_sidebar_thumbnails_cmd_zoom_reset (GtkWidget *widget,
                                    EvSidebarThumbnails *sidebar_thumbnails)
 {
+    (void) widget;
     if (sidebar_thumbnails->priv->thumbnail_width != THUMBNAIL_DEFAULT_WIDTH)
         ev_sidebar_thumbnails_zoom_reset (sidebar_thumbnails);
 }

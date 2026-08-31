@@ -30,12 +30,12 @@
 
 static gboolean finished = TRUE;
 
-static gint size = THUMBNAIL_SIZE;
+static gint thumb_size = THUMBNAIL_SIZE;
 static gboolean time_limit = TRUE;
 static const gchar **file_arguments;
 
 static const GOptionEntry goption_options[] = {
-	{ "size", 's', 0, G_OPTION_ARG_INT, &size, NULL, "SIZE" },
+	{ "size", 's', 0, G_OPTION_ARG_INT, &thumb_size, NULL, "SIZE" },
         { "no-limit", 'l', G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &time_limit, "Don't limit the thumbnailing time to 15 seconds", NULL },
 	{ G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &file_arguments, NULL, "<input> <ouput>" },
 	{ NULL }
@@ -270,7 +270,7 @@ main (int argc, char *argv[])
 	
 	g_option_context_free (context);
 
-	if (size < 1) {
+	if (thumb_size < 1) {
 		g_print ("Size cannot be smaller than 1 pixel\n");
 		return -1;
 	}
@@ -306,7 +306,7 @@ main (int argc, char *argv[])
 		
 		data.document = document;
 		data.output = output;
-		data.size = size;
+		data.size = thumb_size;
 
 		g_thread_new ("EvThumbnailerAsyncRenderer",
 				(GThreadFunc) xreader_thumbnail_pngenc_get_async,
@@ -320,7 +320,7 @@ main (int argc, char *argv[])
 		return data.success ? 0 : -2;
 	}
 
-	if (!xreader_thumbnail_pngenc_get (document, output, size)) {
+	if (!xreader_thumbnail_pngenc_get (document, output, thumb_size)) {
 		g_object_unref (document);
 		ev_shutdown ();
 		return -2;

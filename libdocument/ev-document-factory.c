@@ -35,7 +35,7 @@
 
 #ifdef ENABLE_PIXBUF
 static GList*
-gdk_pixbuf_mime_type_list ()
+gdk_pixbuf_mime_type_list (void)
 {
 	GSList *formats, *list;
 	GList *result = NULL;

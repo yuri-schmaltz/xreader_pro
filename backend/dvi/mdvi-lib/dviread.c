@@ -619,7 +619,7 @@ int mdvi_configure(DviContext *dvi, DviParamCode option, ...)
 		return -1;
 	if(np.mag <= 0.0)
 		return -1;
-	if(np.density < 0)
+	if(np.density == 0)
 		return -1;
 	if(np.hshrink < 1 || np.vshrink < 1)
 		return -1;

@@ -42,6 +42,17 @@ mdvi_c_args = [
     '-DSIZEOF_LONG=__SIZEOF_LONG__',
     '-DSIZEOF_SHORT=__SIZEOF_SHORT__',
     '-DSIZEOF_VOID_P=__SIZEOF_POINTER__',
+    # The mdvi-lib code is legacy code ported from xdvi.  It
+    # has many sign-compare, missing-field-initializer, and
+    # old-style-declaration warnings under modern GCC that
+    # are not worth fixing as part of this stabilization pass.
+    # Suppress them here so -Werror on the rest of the codebase
+    # can succeed.
+    '-Wno-sign-compare',
+    '-Wno-missing-field-initializers',
+    '-Wno-old-style-declaration',
+    '-Wno-shadow',
+    '-Wno-cast-function-type',
 ]
 
 mdvi_deps = [

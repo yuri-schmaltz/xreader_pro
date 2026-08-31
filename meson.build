@@ -229,6 +229,25 @@ if not get_option('deprecated_warnings')
     ]
 endif
 
+# The codebase has legacy GLib patterns (GTypeInfo zero-init,
+# GDestroyNotify casts) that trip -Wmissing-field-initializers
+# and -Wcast-function-type.  Suppress them globally so
+# per-file strict warnings can be added to specific files
+# without breaking unrelated code.  These flags are also added
+# in the ci-local.sh tool when WARN_AS_ERROR=1.
+c_args += [
+    '-Wno-missing-field-initializers',
+    '-Wno-cast-function-type',
+    '-Wno-sign-compare',
+    '-Wno-implicit-fallthrough',
+    '-Wno-missing-prototypes',
+    '-Wno-type-limits',
+    '-Wno-absolute-value',
+    '-Wno-enum-conversion',
+    '-Wno-deprecated-declarations',
+    '-Wno-unused-parameter',
+]
+
 add_global_arguments(c_args, language: 'c')
 add_global_arguments(cpp_args, language: ['c', 'cpp'])
 

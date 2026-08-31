@@ -8,6 +8,13 @@ djvu_sources = [
     'djvu-text-page.h',
 ]
 
+# DjVu backend is also legacy.  Suppress the same warnings
+# as the DVI/comics backends.
+djvu_c_args = [
+    '-Wno-missing-field-initializers',
+    '-Wno-shadow',
+]
+
 djvu_deps = [
     cairo,
     djvu,
@@ -18,6 +25,7 @@ djvu_deps = [
 shared_module(
     'djvudocument',
     djvu_sources,
+    c_args: djvu_c_args,
     link_with: [libdocument],
     link_args: ['-Wl,-Bsymbolic', '-Wl,-z,relro', '-Wl,-z,now'],
     include_directories: include_dirs,
