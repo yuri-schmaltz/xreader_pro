@@ -259,6 +259,34 @@ test(
     env: test_env,
 )
 
+test_tabbed_window = executable(
+    'test-tabbed-window',
+    'test-tabbed-window.c',
+    '../shell/ev-tabbed-window.c',
+    '../shell/ev-tab.c',
+    '../shell/ev-tab-manager.c',
+    include_directories: [include_dirs, include_directories('../shell')],
+    dependencies: [
+        glib,
+        gobject,
+        gio,
+        gtk,
+        libdocument_dep,
+        libview_dep,
+    ],
+    c_args: [
+        '-DG_LOG_DOMAIN="test-tabbed-window"',
+        '-DXREADER_COMPILATION=1',
+    ],
+)
+
+test(
+    'test-tabbed-window',
+    test_tabbed_window,
+    protocol: 'gtest',
+    env: test_env,
+)
+
 test_session_roundtrip = executable(
     'test-session-roundtrip',
     'test-session-roundtrip.c',
