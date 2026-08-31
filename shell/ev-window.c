@@ -26,6 +26,39 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/*
+ * EvWindow is the per-document top-level window.  This file
+ * contains 191 functions / ~8400 lines, organised into the
+ * logical sub-modules below.  Each section is marked by a
+ * banner comment in the body of the file.
+ *
+ *   Section                          Approx. line   Responsibility
+ *   -------------------------------- -------------  -------------------------
+ *   1. Includes / forward decls        30-100       Standard glib/gtk + evince
+ *   2. EvWindowPrivate struct          100-200      All instance state
+ *   3. Macros / signal constants       200-400      Action names, enums
+ *   4. GObject boilerplate             400-700      init/class_init/dispose
+ *   5. Document loading (open/load/    1440-2400    URI loading, async jobs,
+ *      reload/save)                                  reload, recent items
+ *   6. Document presentation           2400-3400    Save, save-as, metadata,
+ *      (save/print)                                 print, print-settings
+ *   7. View management                 3400-4500    EvView signals, sidebar,
+ *      (signals/sidebar)                            thumbnails
+ *   8. Find / annotations              4500-5400    Find bar, annotation
+ *                                                   properties dialog
+ *   9. UI action callbacks            5400-6800    GAction/GtkAction
+ *      (file/edit/view/...)                        handlers
+ *  10. Sidebar / metadata panes        6800-7700    Attachments, layers,
+ *                                                   properties dialog
+ *  11. Presentation mode               7700-8000    Fullscreen present.
+ *  12. Window lifecycle                8000-end     close, dispose, finalize
+ *
+ * A long-term refactoring goal (ROADMAP T5) is to split these
+ * 12 sections into separate compilation units (ev-window-{init,
+ * document, view, actions, sidebar, presentation}.c).  Until
+ * then, the section banners are the primary navigation aid.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -1638,6 +1671,25 @@ ev_window_handle_link (EvWindow *ev_window,
  * ev_window->priv->password_{uri,document}, and thus people who call this
  * function should _not_ necessarily expect those to exist after being
  * called. */
+
+/* =====================================================================
+ * Section 5: Document loading (open/load/reload/save)
+ *
+ * Covers:
+ *   ev_window_load_job_cb           -- async load completion
+ *   ev_window_load_file_remote      -- load a remote file via gio
+ *   ev_window_open_uri              -- public API to open a URI
+ *   ev_window_open_document         -- open an EvDocument directly
+ *   ev_window_reload_document       -- reload current document
+ *   ev_window_reload_local/remote   -- reload helpers
+ *   ev_window_open_copy_at_dest     -- open copy at link dest
+ *   ev_window_open_recent_item      -- "open recent" menu callback
+ *
+ * The job model is EvJobLoad (defined in libview/ev-jobs.c).
+ * Load jobs are tracked in EvWindowPrivate->load_job and are
+ * cancelled via ev_window_clear_load_job() when the window
+ * is closed or another load is started.
+ * ===================================================================== */
 static void
 ev_window_load_job_cb (EvJob *job,
                        gpointer data)
@@ -3005,6 +3057,19 @@ ev_window_save_remote (EvWindow  *ev_window,
                     NULL);
 }
 
+/* =====================================================================
+ * Section 6: Document presentation (save/print)
+ *
+ * Covers:
+ *   ev_window_save_remote         -- async save via gio
+ *   ev_window_save_job_cb         -- async save completion
+ *   ev_window_save_as             -- "Save As" menu action
+ *   ev_window_save                -- "Save" menu action
+ *   ev_window_save_print_settings -- persist print settings to metadata
+ *   ev_window_print_cancel        -- cancel print job
+ *
+ * Print is implemented in libview/ev-print-operation.c.
+ * ===================================================================== */
 static void
 ev_window_clear_save_job (EvWindow *ev_window)
 {
@@ -6122,6 +6187,16 @@ ev_window_class_init (EvWindowClass *ev_window_class)
     widget_class->window_state_event = ev_window_state_event;
     widget_class->drag_data_received = ev_window_drag_data_received;
 }
+
+/* =====================================================================
+ * Section 9: UI action callbacks (file/edit/view/...)
+ *
+ * The action tables (GtkActionEntry for the legacy path and
+ * GActionEntry for the new path) live here.  Most of the
+ * ~150 action callbacks are also in this section.  This is
+ * the largest single section of ev-window.c; refactoring it
+ * into ev-window-actions.c is a goal tracked under ROADMAP B1.
+ * ===================================================================== */
 
 /* Normal items */
 static const GtkActionEntry entries[] = {
