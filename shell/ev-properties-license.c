@@ -21,6 +21,8 @@
 
 #include "config.h"
 
+#include "ev-gtk-compat.h"
+
 #include <string.h>
 
 #include <glib/gi18n.h>
@@ -60,7 +62,7 @@ get_license_text_widget (EvDocumentLicense *license)
 	swindow = gtk_scrolled_window_new (NULL, NULL);
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (swindow),
 					     GTK_SHADOW_IN);
-	gtk_container_add (GTK_CONTAINER (swindow), textview);
+	ev_gtk_container_add (GTK_CONTAINER (swindow), textview);
 	gtk_widget_show (textview);
 
 	return swindow;
@@ -110,15 +112,15 @@ ev_properties_license_add_section (EvPropertiesLicense *properties,
 	markup = g_strdup_printf ("<b>%s</b>", title_text);
 	gtk_label_set_markup (GTK_LABEL (title), markup);
 	g_free (markup);
-	gtk_box_pack_start (GTK_BOX (properties), title, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (properties), title, FALSE, FALSE, 0);
 	gtk_widget_show (title);
 
 	alignment = gtk_alignment_new (0.5, 0.5, 1., 1.);
 	gtk_alignment_set_padding (GTK_ALIGNMENT (alignment), 0, 0, 12, 0);
-	gtk_container_add (GTK_CONTAINER (alignment), contents);
+	ev_gtk_container_add (GTK_CONTAINER (alignment), contents);
 	gtk_widget_show (contents);
 
-	gtk_box_pack_start (GTK_BOX (properties), alignment, FALSE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (properties), alignment, FALSE, TRUE, 0);
 	gtk_widget_show (alignment);
 }
 

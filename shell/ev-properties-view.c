@@ -32,6 +32,7 @@
 #include <gtk/gtk.h>
 
 #include "ev-properties-view.h"
+#include "ev-gtk-compat.h"
 
 typedef enum {
 	TITLE_PROPERTY,
@@ -389,8 +390,8 @@ ev_properties_view_init (EvPropertiesView *properties)
 	gtk_table_set_col_spacings (GTK_TABLE (properties->table), 12);
 	gtk_table_set_row_spacings (GTK_TABLE (properties->table), 6);
 	gtk_container_set_border_width (GTK_CONTAINER (properties->table), 12);
-	gtk_box_pack_start (GTK_BOX (properties), properties->table, 
-			    TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (properties), properties->table,
+			       TRUE, TRUE, 0);
 	gtk_widget_show (properties->table);
 }
 

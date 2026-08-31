@@ -24,6 +24,8 @@
 
 #include "ev-annotation-properties-dialog.h"
 
+#include "ev-gtk-compat.h"
+
 enum {
 	PROP_0,
 	PROP_ANNOT_TYPE
@@ -172,7 +174,7 @@ ev_annotation_properties_dialog_init (EvAnnotationPropertiesDialog *annot_dialog
 	gtk_grid_set_column_spacing (GTK_GRID (grid), 12);
 	gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
 	gtk_container_set_border_width (GTK_CONTAINER (grid), 12);
-	gtk_box_pack_start (GTK_BOX (content_area), grid, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (content_area), grid, FALSE, FALSE, 0);
 	gtk_widget_show (grid);
 
 	label = gtk_label_new (_("Author:"));
@@ -219,7 +221,7 @@ ev_annotation_properties_dialog_init (EvAnnotationPropertiesDialog *annot_dialog
 	markup = g_strdup_printf ("<small>%s</small>", _("Transparent"));
 	gtk_label_set_markup (GTK_LABEL (label), markup);
 	g_free (markup);
-	gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
 	gtk_widget_show (label);
 
 	label = gtk_label_new (NULL);

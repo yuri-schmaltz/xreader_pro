@@ -87,6 +87,60 @@ ev_g_action_activate (GActionMap  *action_map,
 		g_action_activate (action, parameter);
 }
 
+/* Box container helpers -- single-child container.  GTK 3 used
+ * gtk_container_add() which was removed in GTK 4 in favour of
+ * widget-specific append/prepend.  These shims map to the
+ * appropriate API based on the container type at compile time. */
+static inline void
+ev_gtk_container_add (GtkContainer *container,
+                      GtkWidget    *widget)
+{
+#if GTK_CHECK_VERSION(4, 0, 0)
+	/* Best effort: try Box append, fall back to set_child. */
+	if (GTK_IS_BOX (container))
+		gtk_box_append (GTK_BOX (container), widget);
+	else
+		gtk_widget_set_child (GTK_WIDGET (container), widget);
+#else
+	gtk_container_add (container, widget);
+#endif
+}
+
+/* gtk_box_pack_start with default expand/fill.  The legacy
+ * 5-arg form has been removed in GTK 4 in favour of explicit
+ * expand/fill properties on the child.  Use ev_gtk_box_append()
+ * above for new code; this shim keeps the existing call sites
+ * working under both GTK 3 and GTK 4. */
+static inline void
+ev_gtk_box_pack_start (GtkBox    *box,
+                       GtkWidget *child,
+                       gboolean   expand,
+                       gboolean   fill,
+                       guint      padding)
+{
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_box_append (box, child);
+	gtk_widget_set_hexpand (child, expand);
+	gtk_widget_set_vexpand (child, expand);
+	(void) fill;
+	(void) padding;
+#else
+	gtk_box_pack_start (box, child, expand, fill, padding);
+#endif
+}
+
+/* gtk_widget_show_all() has been removed in GTK 4 (widget tree
+ * is shown by default once mapped).  This shim is a no-op on
+ * GTK 4 and the original on GTK 3. */
+static inline void
+ev_gtk_widget_show_all (GtkWidget *widget)
+{
+#if !GTK_CHECK_VERSION(4, 0, 0)
+	if (widget)
+		gtk_widget_show_all (widget);
+#endif
+}
+
 G_END_DECLS
 
 #endif /* EV_GTK_COMPAT_H */

@@ -20,6 +20,8 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+
+#include "ev-gtk-compat.h"
 #endif
 
 #include <glib/gi18n.h>
@@ -135,10 +137,10 @@ ev_properties_fonts_init (EvPropertiesFonts *properties)
 						 font_cell_data_func,
 						 NULL, NULL);
 
-	gtk_container_add (GTK_CONTAINER (swindow), properties->fonts_treeview);
+	ev_gtk_container_add (GTK_CONTAINER (swindow), properties->fonts_treeview);
 	gtk_widget_show (properties->fonts_treeview);
 
-	gtk_box_pack_start (GTK_BOX (properties), swindow, 
+	ev_gtk_box_pack_start (GTK_BOX (properties), swindow, 
 			    TRUE, TRUE, 0);
 	gtk_widget_show (swindow);
 
@@ -146,7 +148,7 @@ ev_properties_fonts_init (EvPropertiesFonts *properties)
 	g_object_set (G_OBJECT (properties->fonts_progress_label),
 		      "xalign", 0.0,
 		      NULL);
-	gtk_box_pack_start (GTK_BOX (properties),
+	ev_gtk_box_pack_start (GTK_BOX (properties),
 			    properties->fonts_progress_label,
 			    FALSE, FALSE, 0);
 	gtk_widget_show (properties->fonts_progress_label);

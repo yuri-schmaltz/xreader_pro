@@ -25,6 +25,8 @@
 
 #include "ev-message-area.h"
 
+#include "ev-gtk-compat.h"
+
 struct _EvMessageAreaPrivate {
 	GtkWidget *main_box;
 	GtkWidget *image;
@@ -103,7 +105,7 @@ ev_message_area_init (EvMessageArea *area)
 	gtk_widget_set_halign (area->priv->label, GTK_ALIGN_START);
 	gtk_widget_set_valign (area->priv->label, GTK_ALIGN_CENTER);
 	gtk_widget_set_can_focus (area->priv->label, TRUE);
-	gtk_box_pack_start (GTK_BOX (vbox), area->priv->label, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), area->priv->label, TRUE, TRUE, 0);
 	gtk_widget_show (area->priv->label);
 
 	area->priv->secondary_label = gtk_label_new (NULL);
@@ -113,22 +115,22 @@ ev_message_area_init (EvMessageArea *area)
 	gtk_widget_set_halign (area->priv->secondary_label, GTK_ALIGN_START);
 	gtk_widget_set_valign (area->priv->secondary_label, GTK_ALIGN_CENTER);
 	gtk_widget_set_can_focus (area->priv->secondary_label, TRUE);
-	gtk_box_pack_start (GTK_BOX (vbox), area->priv->secondary_label, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), area->priv->secondary_label, TRUE, TRUE, 0);
 
 	area->priv->image = gtk_image_new_from_icon_name (NULL, GTK_ICON_SIZE_DIALOG);
 	gtk_widget_set_halign (area->priv->image, GTK_ALIGN_CENTER);
 	gtk_widget_set_valign (area->priv->image, GTK_ALIGN_START);
-	gtk_box_pack_start (GTK_BOX (hbox), area->priv->image, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (hbox), area->priv->image, FALSE, FALSE, 0);
 	gtk_widget_show (area->priv->image);
 
-	gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (hbox), vbox, TRUE, TRUE, 0);
 	gtk_widget_show (vbox);
 
-	gtk_box_pack_start (GTK_BOX (area->priv->main_box), hbox, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (area->priv->main_box), hbox, TRUE, TRUE, 0);
 	gtk_widget_show (hbox);
 
 	content_area = gtk_info_bar_get_content_area (GTK_INFO_BAR (area));
-	gtk_container_add (GTK_CONTAINER (content_area), area->priv->main_box);
+	ev_gtk_container_add (GTK_CONTAINER (content_area), area->priv->main_box);
 	gtk_widget_show (area->priv->main_box);
 }
 
@@ -291,7 +293,7 @@ ev_message_area_set_image (EvMessageArea *area,
 	area->priv->message_type = GTK_MESSAGE_OTHER;
 
 	parent = gtk_widget_get_parent (area->priv->image);
-	gtk_container_add (GTK_CONTAINER (parent), image);
+	ev_gtk_container_add (GTK_CONTAINER (parent), image);
 	gtk_container_remove (GTK_CONTAINER (parent), area->priv->image);
 	gtk_box_reorder_child (GTK_BOX (parent), image, 0);
 

@@ -21,6 +21,8 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+
+#include "ev-gtk-compat.h"
 #endif
 
 #include <glib/gi18n.h>
@@ -116,18 +118,18 @@ ev_password_view_init (EvPasswordView *password_view)
 	gtk_widget_set_hexpand (vbox, FALSE);
 	gtk_widget_set_vexpand (vbox, FALSE);
 	gtk_container_set_border_width (GTK_CONTAINER (vbox), 24);
-	gtk_container_add (GTK_CONTAINER (password_view), vbox);
+	ev_gtk_container_add (GTK_CONTAINER (password_view), vbox);
 
 	password_view->priv->label =
 		(GtkWidget *) g_object_new (GTK_TYPE_LABEL,
 					    "wrap", TRUE,
 					    "selectable", TRUE,
 					    NULL);
-	gtk_box_pack_start (GTK_BOX (vbox), password_view->priv->label, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), password_view->priv->label, FALSE, FALSE, 0);
 
 	image = gtk_image_new_from_icon_name ("dialog-password",
 	                                      GTK_ICON_SIZE_DIALOG);
-	gtk_box_pack_start (GTK_BOX (vbox), image, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), image, FALSE, FALSE, 0);
 
 	label = gtk_label_new (NULL);
 	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
@@ -136,17 +138,17 @@ ev_password_view_init (EvPasswordView *password_view)
 	gtk_label_set_markup (GTK_LABEL (label), markup);
 	g_free (markup);
 
-	gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
 
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
 	button = gtk_button_new_with_mnemonic (_("_Unlock Document"));
 	gtk_style_context_add_class (gtk_widget_get_style_context (button), GTK_STYLE_CLASS_SUGGESTED_ACTION);
 	g_signal_connect (button, "clicked", G_CALLBACK (ev_password_view_clicked_cb), password_view);
 	gtk_box_pack_end (GTK_BOX (hbox), button, FALSE, FALSE, 0);
 
-	gtk_widget_show_all (vbox);
+	ev_gtk_widget_show_all (vbox);
 }
 
 /* Public functions */
@@ -276,7 +278,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 	/* Build contents */
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
 	gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-	gtk_box_pack_start (GTK_BOX (content_area), hbox, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (content_area), hbox, TRUE, TRUE, 0);
 	gtk_widget_show (hbox);
 
 	icon = gtk_image_new_from_icon_name ("dialog-password",
@@ -284,11 +286,11 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 
 	gtk_widget_set_halign (icon, GTK_ALIGN_CENTER);
 	gtk_widget_set_valign (icon, GTK_ALIGN_START);
-	gtk_box_pack_start (GTK_BOX (hbox), icon, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (hbox), icon, FALSE, FALSE, 0);
 	gtk_widget_show (icon);
 
 	main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 18);
-	gtk_box_pack_start (GTK_BOX (hbox), main_vbox, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (hbox), main_vbox, TRUE, TRUE, 0);
 	gtk_widget_show (main_vbox);
 
 	label = gtk_label_new (NULL);
@@ -305,12 +307,12 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 	g_free (text);
 	g_free (markup);
 	g_free (file_name);
-	gtk_box_pack_start (GTK_BOX (main_vbox), label,
+	ev_gtk_box_pack_start (GTK_BOX (main_vbox), label,
 			    FALSE, FALSE, 0);
 	gtk_widget_show (label);
 
 	vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-	gtk_box_pack_start (GTK_BOX (main_vbox), vbox, FALSE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (main_vbox), vbox, FALSE, FALSE, 0);
 	gtk_widget_show (vbox);
 
 	/* The grid that holds the entries */
@@ -325,7 +327,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 	gtk_widget_set_margin_start (grid, 0);
 	gtk_widget_set_margin_end (grid, 0);
 	gtk_widget_show (grid);
-	gtk_box_pack_start (GTK_BOX (vbox),
+	ev_gtk_box_pack_start (GTK_BOX (vbox),
 	                    grid,
 	                    FALSE, FALSE, 0);
 
@@ -358,7 +360,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 		GSList     *group;
 
 		remember_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-		gtk_box_pack_start (GTK_BOX (vbox), remember_box,
+		ev_gtk_box_pack_start (GTK_BOX (vbox), remember_box,
 				    FALSE, FALSE, 0);
 		gtk_widget_show (remember_box);
 
@@ -370,7 +372,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 		g_signal_connect (choice, "toggled",
 				  G_CALLBACK (ev_password_dialog_remember_button_toggled),
 				  password_view);
-		gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
+		ev_gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
 		gtk_widget_show (choice);
 
 		group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
@@ -382,7 +384,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 		g_signal_connect (choice, "toggled",
 				  G_CALLBACK (ev_password_dialog_remember_button_toggled),
 				  password_view);
-		gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
+		ev_gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
 		gtk_widget_show (choice);
 
 		group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
@@ -394,7 +396,7 @@ ev_password_view_ask_password (EvPasswordView *password_view)
 		g_signal_connect (choice, "toggled",
 				  G_CALLBACK (ev_password_dialog_remember_button_toggled),
 				  password_view);
-		gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
+		ev_gtk_box_pack_start (GTK_BOX (remember_box), choice, FALSE, FALSE, 0);
 		gtk_widget_show (choice);
 	}
 

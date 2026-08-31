@@ -24,6 +24,8 @@
 
 #include "ev-progress-message-area.h"
 
+#include "ev-gtk-compat.h"
+
 struct _EvProgressMessageAreaPrivate {
 	GtkWidget *label;
 	GtkWidget *progress_bar;
@@ -88,15 +90,15 @@ ev_progress_message_area_init (EvProgressMessageArea *area)
 				 PANGO_ELLIPSIZE_END);
 	gtk_widget_set_halign (area->priv->label, GTK_ALIGN_START);
 	gtk_widget_set_valign (area->priv->label, GTK_ALIGN_CENTER);
-	gtk_box_pack_start (GTK_BOX (vbox), area->priv->label, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), area->priv->label, TRUE, TRUE, 0);
 	gtk_widget_show (area->priv->label);
 
 	area->priv->progress_bar = gtk_progress_bar_new ();
 	gtk_widget_set_size_request (area->priv->progress_bar, -1, 15);
-	gtk_box_pack_start (GTK_BOX (vbox), area->priv->progress_bar, TRUE, FALSE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (vbox), area->priv->progress_bar, TRUE, FALSE, 0);
 	gtk_widget_show (area->priv->progress_bar);
 
-	gtk_box_pack_start (GTK_BOX (contents), vbox, TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (contents), vbox, TRUE, TRUE, 0);
 	gtk_widget_show (vbox);
 }
 
