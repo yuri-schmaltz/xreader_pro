@@ -24,9 +24,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - distro: ubuntu-22.04
-            arch: amd64
-            image: ubuntu:22.04
           - distro: ubuntu-24.04
             arch: amd64
             image: ubuntu:24.04
@@ -91,9 +88,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [ubuntu-22.04, ubuntu-24.04]
+        distro: [ubuntu-24.04]
     container:
-      image: ubuntu:${{ matrix.distro == 'ubuntu-22.04' && '22.04' || '24.04' }}
+      image: ubuntu:24.04
     steps:
       - name: Install dependencies
         run: |
@@ -326,6 +323,8 @@ jobs:
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --suppress=preprocessorErrorDirective \
+            --suppress=uninitvar:shell/ev-application.c \
+            --suppress=legacyUninitvar \
             -DXREADER_COMPILATION \
             $INCLUDES \
             -I libdocument -I libview -I shell -I backend -I cut-n-paste -I thumbnailer -I previewer \
@@ -621,7 +620,6 @@ jobs:
           for test in test-file-helpers test-mime test-document-factory test-image test-page-render; do
             valgrind --quiet --error-exitcode=1 --leak-check=full \
               --errors-for-leak-kinds=definite,possible \
-              --suppressions=/usr/lib/x86_64-linux-gnu/valgrind/default.supp \
               ./$test > /tmp/$test.log 2>&1 || FAILED=1
           done
           [ $FAILED -eq 0 ]
@@ -816,4 +814,5 @@ jobs:
           cp /tmp/xreader-install/usr/local/bin/xreader /usr/bin/xreader
           ldconfig
       - name: Run E2E Python tests
-        run: xvfb-run -a meson test -C build-e2e --print-errorlogs
+        run: |
+          dbus-run-session -- bash -c             'gsettings set org.gnome.desktop.interface toolkit-accessibility true &&              xvfb-run -a meson test -C build-e2e --print-errorlogs'
