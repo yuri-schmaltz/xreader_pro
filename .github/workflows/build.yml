@@ -14,6 +14,8 @@ on:
 jobs:
   build:
     if: github.event_name != 'issue_comment'
+    permissions:
+      contents: write
     uses: linuxmint/github-actions/.github/workflows/do-builds.yml@master
     with:
       commit_id: master
