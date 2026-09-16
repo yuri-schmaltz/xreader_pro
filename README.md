@@ -71,10 +71,10 @@ You can download the pre-packaged standalone `.deb` release directly from GitHub
 
 ```bash
 # 1. Download the latest .deb release package
-wget https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.0-1/xreader-pro_4.8.0-1_amd64.deb
+wget https://github.com/yuri-schmaltz/xreader_pro/releases/download/v4.8.1-1/xreader-pro_4.8.1-1_amd64.deb
 
 # 2. Install the package
-sudo dpkg -i xreader-pro_4.8.0-1_amd64.deb
+sudo dpkg -i xreader-pro_4.8.1-1_amd64.deb
 
 # 3. Resolve any missing system dependencies automatically
 sudo apt-get install -f
