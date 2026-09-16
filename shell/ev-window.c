@@ -6055,19 +6055,6 @@ ev_window_dispose (GObject *object)
     G_OBJECT_CLASS (ev_window_parent_class)->dispose (object);
 }
 
-static void
-menubar_deactivate_cb (GtkWidget *menubar,
-                       EvWindow  *window)
-{
-    g_signal_handlers_disconnect_by_func (menubar,
-            G_CALLBACK (menubar_deactivate_cb),
-            window);
-
-    gtk_menu_shell_deselect (GTK_MENU_SHELL (menubar));
-
-    update_chrome_visibility (window);
-}
-
 static gboolean
 is_alt_key_event (GdkEventKey *event)
 {
