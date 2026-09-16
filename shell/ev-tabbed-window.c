@@ -491,6 +491,8 @@ ev_tabbed_window_open_file (EvTabbedWindow *window,
 		return NULL;
 
 	EvTab *tab = EV_TAB (ev_tab_new (document));
+
+	g_object_unref (document);
 	ev_tab_set_location (tab, file);
 	ev_tab_manager_append_tab (window->priv->tab_manager, tab);
 
