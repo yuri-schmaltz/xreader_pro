@@ -33,8 +33,8 @@
 
 typedef struct _EvPageCacheData {
 	EvJob             *job;
-	gboolean           done : 1;
-	gboolean           dirty : 1;
+	guint              done : 1;
+	guint              dirty : 1;
 	EvJobPageDataFlags flags;
 
 	EvMappingList     *link_mapping;
