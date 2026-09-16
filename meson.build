@@ -67,6 +67,16 @@ else
 endif
 
 xapp = dependency('xapp', version: '>= 2.5.0', required: false)
+if xapp.found()
+    # XAppDarkModeManager was added in libxapp 2.2 / 2.3; guard the
+    # include so xreader still builds on distros that ship an older
+    # libxapp with a matching major version (e.g. Ubuntu 22.04).
+    have_xapp_dark_mode = cc.has_header('libxapp/xapp-dark-mode-manager.h',
+                                        dependencies: xapp)
+else
+    have_xapp_dark_mode = false
+endif
+xreader_conf.set10('HAVE_XAPP_DARK_MODE', have_xapp_dark_mode)
 xml = dependency('libxml-2.0', version: '>= 2.5.0')
 zlib = dependency('zlib')
 libsecret = dependency('libsecret-1', version: '>= 0.5', required: get_option('keyring'))
