@@ -281,6 +281,15 @@ subdir('install-scripts')
 # rather than making 0.46 a hard requirement. This condition can be removed once we
 # no longer need to worry about building on 0.45 or earlier
 if meson.version().version_compare('>=0.46')
+    # Shared env for the dogtail e2e tests: they launch the uninstalled
+    # shell binary, which needs the backend modules and the compiled
+    # GSettings schemas from the build tree.  (No GSETTINGS_BACKEND here:
+    # the e2e tests rely on the real settings store to enable AT-SPI
+    # accessibility for dogtail.)
+    test_env = environment()
+    test_env.set('GSETTINGS_SCHEMA_DIR', join_paths(meson.project_build_root(), 'data'))
+    test_env.set('XREADER_BACKEND_DIR', join_paths(meson.project_build_root(), 'backend'))
+
     subdir('test')
     subdir('tests')
     subdir('fuzz')

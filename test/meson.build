@@ -37,5 +37,6 @@ foreach case : test_cases
         depends: xreader,
         workdir: join_paths(prefix, bindir),
         timeout: 120,
+        env: test_env,
     )
 endforeach
