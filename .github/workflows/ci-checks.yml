@@ -815,9 +815,12 @@ jobs:
           mkdir -p /usr/bin
           cp /tmp/xreader-install/usr/local/bin/xreader /usr/bin/xreader
           ldconfig
+      - name: Debug AT-SPI probe
+        if: always()
+        run: dbus-run-session -- bash tools/e2e-probe.sh build-e2e/shell/xreader test/test-links.pdf
       - name: Run E2E Python tests
         run: |
-          dbus-run-session -- bash -c             'gsettings set org.gnome.desktop.interface toolkit-accessibility true &&              xvfb-run -a meson test -C build-e2e --print-errorlogs'
+          dbus-run-session -- bash -c             'export GTK_MODULES=gail:atk-bridge &&              gsettings set org.gnome.desktop.interface toolkit-accessibility true &&              xvfb-run -a meson test -C build-e2e --print-errorlogs'
       - name: Upload E2E logs
         if: always()
         uses: actions/upload-artifact@v4
