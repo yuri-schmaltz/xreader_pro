@@ -4908,7 +4908,7 @@ show_loading_window (EvView *view)
 	if (!view->loading_timeout) {
 		view->loading_timeout =
 			g_timeout_add_full (G_PRIORITY_LOW,
-					    0.5, (GSourceFunc)show_loading_window_cb,
+					    500, (GSourceFunc)show_loading_window_cb,
 					    view, NULL);
 	}
 }

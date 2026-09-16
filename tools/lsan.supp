@@ -21,4 +21,7 @@ leak:libcairo.so
 leak:ft_loop
 leak:g_private_get
 leak:g_thread
-leak:pango_font_map
+leak:pango_font_mapleak:atk_bridge_adaptor_init
+leak:libatk-bridge-2.0.so
+leak:_dbus_string_lengthen
+leak:_dbus_read

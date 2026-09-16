@@ -31,7 +31,8 @@
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-#ifdef HAVE_XAPP_DARK_MODE
+#if defined(__has_include) && __has_include(<libxapp/xapp-dark-mode-manager.h>)
+#define HAVE_XAPP_DARK_MODE 1
 #include <libxapp/xapp-dark-mode-manager.h>
 #endif
 

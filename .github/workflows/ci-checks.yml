@@ -202,7 +202,7 @@ jobs:
             -Dcpp_args="-O1 -g" \
             -Dc_args="-O1 -g"
       - name: Build
-        run: ninja -C build-fuzz fuzz-document-load
+        run: ninja -C build-fuzz fuzz/fuzz-document-load
       - name: Seed corpus
         run: |
           mkdir -p fuzz-corpus
@@ -216,16 +216,16 @@ jobs:
           echo "Corpus size: $(ls -1 fuzz-corpus/ 2>/dev/null | wc -l) file(s)"
       - name: Run fuzzer
         run: |
-          cd build-fuzz
-          mkdir -p ../fuzz-crashes
+          cd build-fuzz/fuzz
+          mkdir -p ../../fuzz-crashes
           # 60-second time-boxed run.  libFuzzer exits 0 on a clean
           # run, non-zero on the first crash (the offending input
           # is left in ./crash-* in the current dir for upload).
-          timeout 60s ./fuzz-document-load ../fuzz-corpus/ \
+          timeout 60s ./fuzz-document-load ../../fuzz-corpus/ \
             -max_len=1048576 \
             -max_total_time=60 \
             -rss_limit_mb=2048 \
-            -artifact_prefix=../fuzz-crashes/ \
+            -artifact_prefix=../../fuzz-crashes/ \
           || rc=$?
           rc=${rc:-0}
           if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then
@@ -315,7 +315,9 @@ jobs:
           set -e
           INCLUDES=""
           for inc in $(pkg-config --cflags glib-2.0 gio-2.0 gtk+-3.0 gdk-pixbuf-2.0 cairo pango libxml-2.0 poppler-glib); do
-            INCLUDES="$INCLUDES $inc"
+            case "$inc" in
+              -I*) INCLUDES="$INCLUDES $inc" ;;
+            esac
           done
           cppcheck --quiet --error-exitcode=1 \
             --enable=warning,style,performance,portability \
@@ -619,7 +621,7 @@ jobs:
           for test in test-file-helpers test-mime test-document-factory test-image test-page-render; do
             valgrind --quiet --error-exitcode=1 --leak-check=full \
               --errors-for-leak-kinds=definite,possible \
-              --suppressions=/usr/lib/valgrind/default.supp \
+              --suppressions=/usr/lib/x86_64-linux-gnu/valgrind/default.supp \
               ./$test > /tmp/$test.log 2>&1 || FAILED=1
           done
           [ $FAILED -eq 0 ]
@@ -811,7 +813,7 @@ jobs:
           # The Python tests run `xreader` from /usr/bin (workdir).
           # Use a wrapper that points to the staged binary.
           mkdir -p /usr/bin
-          cp /tmp/xreader-install/usr/bin/xreader /usr/bin/xreader
+          cp /tmp/xreader-install/usr/local/bin/xreader /usr/bin/xreader
           ldconfig
       - name: Run E2E Python tests
         run: xvfb-run -a meson test -C build-e2e --print-errorlogs
