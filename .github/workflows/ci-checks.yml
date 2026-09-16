@@ -44,6 +44,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -102,6 +103,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -127,7 +129,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure (sanitizers)
         run: |
-          CC=clang CXX=clang++ meson setup build-san \
+          meson setup build-san \
             --buildtype=debug \
             -Db_sanitize=address,undefined \
             -Db_lto=false \
@@ -160,9 +162,11 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             build-essential \
             clang \
+            libclang-rt-18-dev \
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -190,7 +194,7 @@ jobs:
         run: |
           CC=clang CXX=clang++ meson setup build-fuzz \
             --buildtype=debug \
-            -Dfuzz=true \
+            -Dfuzz=enabled \
             -Db_sanitize=address,undefined,fuzzer \
             -Dcpp_args="-fsanitize=address,undefined,fuzzer-no-link -fno-omit-frame-pointer" \
             -Dc_args="-fsanitize=address,undefined,fuzzer-no-link -fno-omit-frame-pointer -O1 -g"
@@ -280,6 +284,7 @@ jobs:
             cppcheck \
             build-essential \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -306,9 +311,12 @@ jobs:
           set -e
           cppcheck --quiet --error-exitcode=1 \
             --enable=warning,style,performance,portability \
+            --library=glib \
             --inline-suppr \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
+            --suppress=preprocessorErrorDirective \
+            -DXREADER_COMPILATION \
             -I libdocument -I libview -I shell -I backend -I cut-n-paste -I thumbnailer -I previewer \
             libdocument libview shell backend cut-n-paste thumbnailer previewer
   # Source-style checks: trailing whitespace, CRLF, BOMs, tabs in
@@ -326,6 +334,7 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            git \
             clang-format \
             shellcheck
       - name: Checkout
@@ -353,6 +362,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -422,6 +432,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -501,6 +512,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -560,6 +572,7 @@ jobs:
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -616,13 +629,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             curl \
             build-essential \
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -686,10 +700,12 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             clang \
+            libclang-rt-18-dev \
             build-essential \
             meson \
             pkg-config \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
@@ -748,6 +764,7 @@ jobs:
             python3 \
             python3-dogtail \
             libgtk-3-dev \
+            libgail-3-dev \
             libpoppler-glib-dev \
             libgxps-dev \
             libspectre-dev \
