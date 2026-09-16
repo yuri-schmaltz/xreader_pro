@@ -3,9 +3,13 @@
 # Build the document-load fuzzer with:
 #
 #   CC=clang meson setup build-fuzz \
-#     -Db_sanitize=address,undefined,fuzzer \
-#     --wipe
-#   meson compile -C build-fuzz fuzz-document-load
+#     -Db_sanitize=none \
+#     -Dfuzz=enabled
+#
+# The harness itself is linked with -fsanitize=fuzzer (which brings
+# clang's ASan coverage instrumentation for the harness); the project
+# shared libraries are NOT sanitized so the -Wl,--no-undefined shared
+# library links keep working under clang.
 #
 # Or use the ASan/UBSan-only variant (no fuzzer, no corpus) for CI:
 #

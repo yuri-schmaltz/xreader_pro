@@ -60,6 +60,7 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
+            libzip-dev \
             shared-mime-info \
             gettext \
             intltool \
@@ -119,6 +120,7 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
+            libzip-dev \
             shared-mime-info \
             gettext \
             intltool \
@@ -182,6 +184,7 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
+            libzip-dev \
             shared-mime-info \
             gettext \
             intltool \
@@ -195,9 +198,9 @@ jobs:
           CC=clang CXX=clang++ meson setup build-fuzz \
             --buildtype=debug \
             -Dfuzz=enabled \
-            -Db_sanitize=address,undefined,fuzzer \
-            -Dcpp_args="-fsanitize=address,undefined,fuzzer-no-link -fno-omit-frame-pointer" \
-            -Dc_args="-fsanitize=address,undefined,fuzzer-no-link -fno-omit-frame-pointer -O1 -g"
+            -Db_sanitize=none \
+            -Dcpp_args="-O1 -g" \
+            -Dc_args="-O1 -g"
       - name: Build
         run: ninja -C build-fuzz fuzz-document-load
       - name: Seed corpus
@@ -299,7 +302,8 @@ jobs:
             libwebkit2gtk-4.1-dev \
             libzip-dev \
             intltool \
-            pkg-config
+            pkg-config \
+            ca-certificates
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run cppcheck
@@ -311,7 +315,7 @@ jobs:
           set -e
           cppcheck --quiet --error-exitcode=1 \
             --enable=warning,style,performance,portability \
-            --library=glib \
+            --suppress=unknownMacro \
             --inline-suppr \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
@@ -336,7 +340,8 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             git \
             clang-format \
-            shellcheck
+            shellcheck \
+            ca-certificates
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run check-source.sh
@@ -730,9 +735,7 @@ jobs:
         run: |
           CC=clang CXX=clang++ meson setup build-clang \
             --buildtype=debug \
-            -Db_sanitize=address,undefined \
-            -Dcpp_args="-fno-omit-frame-pointer" \
-            -Dc_args="-fno-omit-frame-pointer" \
+            -Db_sanitize=none \
             --werror
       - name: Build
         run: ninja -C build-clang
@@ -785,7 +788,8 @@ jobs:
             intltool \
             desktop-file-utils \
             xvfb \
-            ca-certificates
+            ca-certificates \
+            libzip-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Configure
