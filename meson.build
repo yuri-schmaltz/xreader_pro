@@ -154,25 +154,31 @@ math = cc.find_library('m', required: false)
 intltool_merge = find_program('intltool-merge')
 
 mathjax_directory = get_option('mathjax-directory')
+fs = import('fs')
 if mathjax_directory == ''
     foreach dir: [
         # Arch Linux
         '/usr/share/mathjax',
-        # Debian
+        # Debian / Ubuntu
         '/usr/share/javascript/mathjax'
         ]
-        if run_command('test', ['-f', join_paths(dir, 'MathJax.js')]).returncode() == 0
+        if fs.exists(join_paths(dir, 'MathJax.js'))
             mathjax_directory = dir
-            # break would require meson_version >= 0.49.0 so just let the last one win
         endif
     endforeach
 endif
 
-if mathjax_directory != ''
-    xreader_conf.set_quoted('MATHJAX_DIRECTORY', mathjax_directory)
-elif get_option('epub')
-    error('"mathjax-directory" is undefined and could not be autodetected')
+if mathjax_directory == ''
+    # Autodetection is best-effort: some build environments (distro
+    # chroots, CI containers) do not ship MathJax.  The EPUB backend
+    # only embeds a <script> reference, so a missing directory is not
+    # a build failure -- default to the Debian path and keep going.
+    warning('"mathjax-directory" was not set and MathJax could not be autodetected; ' +
+            'defaulting to /usr/share/javascript/mathjax.')
+    mathjax_directory = '/usr/share/javascript/mathjax'
 endif
+
+xreader_conf.set_quoted('MATHJAX_DIRECTORY', mathjax_directory)
 
 # generate config.h
 config_h_file = configure_file(
