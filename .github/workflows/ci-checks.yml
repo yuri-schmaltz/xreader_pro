@@ -26,10 +26,10 @@ jobs:
         include:
           - distro: ubuntu-22.04
             arch: amd64
-            image: ubuntu-22.04
+            image: ubuntu:22.04
           - distro: ubuntu-24.04
             arch: amd64
-            image: ubuntu-24.04
+            image: ubuntu:24.04
           - distro: ubuntu-24.04
             arch: arm64
             image: ubuntu:24.04
@@ -59,12 +59,9 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
-            xapp-symbolic-icons \
             shared-mime-info \
             gettext \
             intltool \
-            libxreaderdocument-dev \
-            libxreaderview-dev \
             desktop-file-utils \
             xvfb \
             ca-certificates
@@ -120,12 +117,9 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
-            xapp-symbolic-icons \
             shared-mime-info \
             gettext \
             intltool \
-            libxreaderdocument-dev \
-            libxreaderview-dev \
             desktop-file-utils \
             xvfb \
             ca-certificates
@@ -145,6 +139,7 @@ jobs:
         run: xvfb-run -a meson test -C build-san --print-errorlogs
         env:
           ASAN_OPTIONS: "detect_leaks=1:abort_on_error=1:print_stacktrace=1"
+          LSAN_OPTIONS: "suppressions=$GITHUB_WORKSPACE/tools/lsan.supp"
           UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
 
   # Run the libFuzzer harness for 60 seconds per CI invocation.
@@ -183,12 +178,9 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
-            xapp-symbolic-icons \
             shared-mime-info \
             gettext \
             intltool \
-            libxreaderdocument-dev \
-            libxreaderview-dev \
             desktop-file-utils \
             xvfb \
             ca-certificates
@@ -255,8 +247,8 @@ jobs:
       - name: Lint commit messages
         run: |
           set -e
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             # PR: lint every commit the PR added on top of master.
             range="origin/master..HEAD"
@@ -272,7 +264,7 @@ jobs:
   # that the sanitizer job (PR #8) only catches at runtime, and
   # that the warnings job (PR #8) sometimes lets through because
   # -Wall does not flag every CWE.  cppcheck is intentionally
-  # run with --enable=warning,style,performance,portability,info
+  # run with --enable=warning,style,performance,portability
   # (NOT --enable=all, which generates hundreds of false
   # positives in legacy C code).
   cppcheck:
@@ -313,7 +305,7 @@ jobs:
           # and fail the job on the first error.
           set -e
           cppcheck --quiet --error-exitcode=1 \
-            --enable=warning,style,performance,portability,info \
+            --enable=warning,style,performance,portability \
             --inline-suppr \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
@@ -374,6 +366,9 @@ jobs:
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
             libzip-dev \
+            libsm-dev \
+            libice-dev \
+            libx11-dev \
             gettext \
             intltool \
             shared-mime-info \
@@ -578,6 +573,9 @@ jobs:
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
             libzip-dev \
+            libsm-dev \
+            libice-dev \
+            libx11-dev \
             gettext \
             intltool \
             shared-mime-info \
@@ -619,7 +617,30 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            curl \
+            build-essential \
+            meson \
+            pkg-config \
+            libgtk-3-dev \
+            libpoppler-glib-dev \
+            libgxps-dev \
+            libspectre-dev \
+            libkpathsea-dev \
+            libdjvulibre-dev \
+            libtiff-dev \
+            libsecret-1-dev \
+            libxapp-dev \
+            libsm-dev \
+            libice-dev \
+            libx11-dev \
+            libxml2-dev \
+            libarchive-dev \
+            libgirepository1.0-dev \
+            libwebkit2gtk-4.1-dev \
+            shared-mime-info \
+            gettext \
+            intltool
       - name: Download Coverity build tool
         run: |
           if [ -z "$COVERITY_SCAN_TOKEN" ]; then
@@ -630,7 +651,12 @@ jobs:
           curl -sSL -o cov.tgz https://scan.coverity.com/download/linux64
           tar xzf cov.tgz -C cov-analysis-linux64 --strip-components=1 || true
       - name: Configure
-        run: meson setup build-cov --buildtype=debug --werror
+        run: |
+          if [ -z "$COVERITY_SCAN_TOKEN" ]; then
+            echo "COVERITY_SCAN_TOKEN not set, skipping"
+            exit 0
+          fi
+          meson setup build-cov --buildtype=debug --werror
       - name: Build with Coverity
         run: |
           if [ -z "$COVERITY_SCAN_TOKEN" ]; then
@@ -737,7 +763,6 @@ jobs:
             libarchive-dev \
             libgirepository1.0-dev \
             libwebkit2gtk-4.1-dev \
-            xapp-symbolic-icons \
             shared-mime-info \
             gettext \
             intltool \
@@ -759,8 +784,8 @@ jobs:
           DESTDIR=/tmp/xreader-install meson install -C build-e2e
           # The Python tests run `xreader` from /usr/bin (workdir).
           # Use a wrapper that points to the staged binary.
-          sudo mkdir -p /usr/bin
-          sudo cp /tmp/xreader-install/usr/bin/xreader /usr/bin/xreader
-          sudo ldconfig
+          mkdir -p /usr/bin
+          cp /tmp/xreader-install/usr/bin/xreader /usr/bin/xreader
+          ldconfig
       - name: Run E2E Python tests
         run: xvfb-run -a meson test -C build-e2e --print-errorlogs

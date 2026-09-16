@@ -1,0 +1,24 @@
+# LSan suppression file for xreader's unit tests.
+#
+# These allocations are static caches owned by third-party
+# libraries (fontconfig, pango, cairo, expat) that are only
+# reclaimed when the library's process-exit cleanup runs.
+# GTest binaries that create & destroy GTK widgets do not reach
+# that cleanup before LeakSanitizer scans the heap, so we
+# suppress those known-good leaks -- WITHOUT suppressing the
+# project's own memory management, which stays strictly checked.
+#
+# Usage: LSAN_OPTIONS=suppressions=$PWD/tools/lsan.supp ./tests
+leak:libfontconfig.so
+leak:FcFontRenderPrepare
+leak:FcFontSetMatch
+leak:FcValueSave
+leak:FcConfigSubstituteWithPat
+leak:libpangoft2
+leak:libpango-1.0.so
+leak:libexpat.so
+leak:libcairo.so
+leak:ft_loop
+leak:g_private_get
+leak:g_thread
+leak:pango_font_map

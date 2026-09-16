@@ -77,6 +77,7 @@ else
         >/dev/null
     ninja -C build-san
     ASAN_OPTIONS="detect_leaks=1:abort_on_error=1:print_stacktrace=1" \
+    LSAN_OPTIONS="suppressions=$REPO_ROOT/tools/lsan.supp" \
     UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1" \
         meson test -C build-san --print-errorlogs
     green "    ASan+UBSan build + test: ok"
