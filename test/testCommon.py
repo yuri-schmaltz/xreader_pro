@@ -25,5 +25,7 @@ def run_app(file=None):
     pid = dt.run(sys.argv[1], arguments=arguments, appName='xreader')
 
 def bail():
+    import traceback
+    traceback.print_exc()
     os.kill(pid, signal.SIGTERM)
     sys.exit(1)
