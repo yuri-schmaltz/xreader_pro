@@ -1,4 +1,4 @@
-xreader (4.8.1-1) zena; urgency=medium
+xreader (4.8.1) zena; urgency=medium
 
   * Xreader Pro 4.8.1 Release:
     - [TABS] Embedded native multi-document tab bar directly into EvWindow.
