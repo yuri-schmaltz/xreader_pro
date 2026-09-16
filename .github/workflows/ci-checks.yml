@@ -140,11 +140,11 @@ jobs:
       - name: Build
         run: ninja -C build-san
       - name: Test
-        run: xvfb-run -a meson test -C build-san --print-errorlogs
-        env:
-          ASAN_OPTIONS: "detect_leaks=1:abort_on_error=1:print_stacktrace=1"
-          LSAN_OPTIONS: "suppressions=$GITHUB_WORKSPACE/tools/lsan.supp"
-          UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
+        run: |
+          export ASAN_OPTIONS="detect_leaks=1:abort_on_error=1:print_stacktrace=1"
+          export UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1"
+          export LSAN_OPTIONS="suppressions=$PWD/tools/lsan.supp"
+          xvfb-run -a meson test -C build-san --print-errorlogs
 
   # Run the libFuzzer harness for 60 seconds per CI invocation.
   # Requires PR #13 (feat/fuzz-harness) to be merged first, since
@@ -313,6 +313,10 @@ jobs:
           # parsers live there), so scan those subdirs first
           # and fail the job on the first error.
           set -e
+          INCLUDES=""
+          for inc in $(pkg-config --cflags glib-2.0 gio-2.0 gtk+-3.0 gdk-pixbuf-2.0 cairo pango libxml-2.0 poppler-glib); do
+            INCLUDES="$INCLUDES $inc"
+          done
           cppcheck --quiet --error-exitcode=1 \
             --enable=warning,style,performance,portability \
             --suppress=unknownMacro \
@@ -321,6 +325,7 @@ jobs:
             --suppress=unusedFunction \
             --suppress=preprocessorErrorDirective \
             -DXREADER_COMPILATION \
+            $INCLUDES \
             -I libdocument -I libview -I shell -I backend -I cut-n-paste -I thumbnailer -I previewer \
             libdocument libview shell backend cut-n-paste thumbnailer previewer
   # Source-style checks: trailing whitespace, CRLF, BOMs, tabs in
@@ -406,7 +411,7 @@ jobs:
         run: |
           lcov --capture --directory build-cov --output-file coverage.info \
             --rc lcov_branch_coverage=1
-          lcov --remove coverage.info '/usr/*' '*/cut-n-paste/smclient/*' \
+          lcov --remove coverage.info '/usr/*' \
             --output-file coverage.filtered.info
           genhtml coverage.filtered.info --output-directory coverage-html
           echo "Coverage summary:"
@@ -609,7 +614,7 @@ jobs:
       - name: Run unit tests under valgrind
         run: |
           set +e
-          cd build-valgrind
+          cd build-valgrind/tests
           FAILED=0
           for test in test-file-helpers test-mime test-document-factory test-image test-page-render; do
             valgrind --quiet --error-exitcode=1 --leak-check=full \
