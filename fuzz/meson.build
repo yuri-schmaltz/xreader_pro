@@ -26,8 +26,7 @@ if get_option('fuzz').enabled()
     libdocument_dep,
   ]
 
-  if cc.has_multi_arguments(['-fsanitize=fuzzer-no-link'],
-                            dependencies: fuzz_deps)
+  if cc.has_multi_arguments(['-fsanitize=fuzzer-no-link'])
     fuzz_link_args = ['-fsanitize=fuzzer']
   else
     fuzz_link_args = []

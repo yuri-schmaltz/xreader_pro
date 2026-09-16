@@ -303,6 +303,7 @@ char * _synctex_merge_strings(const char * first,...) {
 		size_t len = strlen(temp);
 		if(UINT_MAX-len<size) {
 			_synctex_error("!  _synctex_merge_strings: Capacity exceeded.");
+			va_end(arg);
 			return NULL;
 		}
 		size+=len;
