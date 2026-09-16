@@ -64,7 +64,12 @@ make_fake_document (void)
 static EvTab *
 make_fake_tab (void)
 {
-	return EV_TAB (g_object_ref_sink (ev_tab_new (make_fake_document ())));
+	EvDocument *doc = make_fake_document ();
+	EvTab *tab = EV_TAB (g_object_ref_sink (ev_tab_new (doc)));
+
+	g_object_unref (doc);
+
+	return tab;
 }
 
 /* --- tests --- */
