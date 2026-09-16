@@ -50,10 +50,15 @@ mdvi_c_args = [
     # can succeed.
     '-Wno-sign-compare',
     '-Wno-missing-field-initializers',
-    '-Wno-old-style-declaration',
     '-Wno-shadow',
     '-Wno-cast-function-type',
 ]
+
+# Not all warnings exist in every compiler: clang has no
+# -Wold-style-declaration, so only suppress it where gcc supports it.
+if cc.has_argument('-Wno-old-style-declaration')
+    mdvi_c_args += '-Wno-old-style-declaration'
+endif
 
 mdvi_deps = [
     glib,
