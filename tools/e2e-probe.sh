@@ -6,6 +6,8 @@ binary="$1"
 file="$2"
 
 export GTK_MODULES="gail:atk-bridge"
+export XREADER_BACKEND_DIR="$PWD/backend"
+export GSETTINGS_SCHEMA_DIR="$PWD/data"
 gsettings set org.gnome.desktop.interface toolkit-accessibility true
 
 xvfb-run -a bash -c "
