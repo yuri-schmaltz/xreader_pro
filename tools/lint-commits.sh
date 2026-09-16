@@ -55,6 +55,7 @@ err_count=0
 known_subdirs=(
     libview libdocument shell backend thumbnailer previewer
     tests fuzz tools data cut-n-paste debian po help
+    dvi
 )
 
 # Top-level files / docs that may appear as a <component>: prefix.
