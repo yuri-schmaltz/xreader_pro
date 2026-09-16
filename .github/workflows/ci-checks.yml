@@ -793,7 +793,7 @@ jobs:
             shared-mime-info \
             gettext \
             intltool \
-desktop-file-utils \
+            desktop-file-utils \
             xvfb \
             ca-certificates \
             libzip-dev
