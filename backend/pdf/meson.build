@@ -20,6 +20,18 @@ pdf_c_args = [
     '-Wno-missing-field-initializers',
 ]
 
+# -Wno-absolute-value and -Wno-missing-prototypes are C-only warnings;
+# passing them to the C++ compiler breaks --werror builds.  ev-poppler.cc
+# is the only TU in this module, so keep the C++-safe subset only.
+pdf_cpp_args = [
+    '-Wno-unused-parameter',
+    '-Wno-switch',
+    '-Wno-cast-function-type',
+    '-Wno-deprecated-declarations',
+    '-Wno-type-limits',
+    '-Wno-missing-field-initializers',
+]
+
 pdf_deps = [
     gtk,
     xml,
@@ -30,7 +42,7 @@ shared_module(
     'pdfdocument',
     pdf_sources,
     c_args: pdf_c_args,
-    cpp_args: pdf_c_args,
+    cpp_args: pdf_cpp_args,
     link_with: [libdocument],
     link_args: ['-Wl,-Bsymbolic', '-Wl,-z,relro', '-Wl,-z,now'],
     include_directories: include_dirs,
