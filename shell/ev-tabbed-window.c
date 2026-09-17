@@ -233,6 +233,10 @@ on_tab_added (EvTabManager    *manager,
 	                          GTK_WIDGET (tab),
 	                          build_tab_label (tab));
 
+	/* GTK3 does not show notebook pages automatically; make
+	 * sure the tab (and the view inside it) is visible. */
+	gtk_widget_show_all (GTK_WIDGET (tab));
+
 	gint page_num = gtk_notebook_get_n_pages (GTK_NOTEBOOK (window->priv->notebook)) - 1;
 	GtkWidget *tab_label = gtk_notebook_get_tab_label (
 		GTK_NOTEBOOK (window->priv->notebook), GTK_WIDGET (tab));
@@ -358,12 +362,18 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	window->priv->statusbar = gtk_statusbar_new ();
 	ev_gtk_box_append (window->priv->main_box, window->priv->statusbar);
 
-	gtk_widget_show_all (window->priv->main_box);
-	gtk_widget_show (GTK_WIDGET (window));
+gtk_widget_show_all (window->priv->main_box);
 
 	update_empty_state (window);
+
 	gtk_window_set_title (GTK_WINDOW (window), _("Xreader"));
+
+	/* Set the default size *before* showing the window, otherwise the
+	 * window is realized with a stale (tiny) geometry and the default
+	 * never takes effect. */
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
+
+	gtk_widget_show (GTK_WINDOW (window));
 
 	/* Keyboard shortcuts via a GtkEventControllerKey.  Production-ready
 	 * approach (works with GTK 3.24+). */
@@ -491,6 +501,17 @@ ev_tabbed_window_open_file (EvTabbedWindow *window,
 		return NULL;
 
 	EvTab *tab = EV_TAB (ev_tab_new (document));
+
+	/* Render the document inside the tab: build an EvDocumentModel
+	 * and an EvView, and hand the view to the tab.  The EvView
+	 * takes a reference on the model, so dropping our own model
+	 * reference below is safe. */
+	EvDocumentModel *model = ev_document_model_new ();
+	EvView *view = EV_VIEW (ev_view_new ());
+	ev_view_set_model (view, model);
+	ev_document_model_set_document (model, document);
+	g_object_unref (model);
+	ev_tab_set_view (tab, view);
 
 	g_object_unref (document);
 	ev_tab_set_location (tab, file);

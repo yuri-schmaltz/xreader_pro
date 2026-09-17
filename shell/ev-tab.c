@@ -27,7 +27,8 @@
 struct _EvTabPrivate
 {
 	EvDocument  *document;
-	GtkWidget   *view;        /* EvView, owned by the box */
+	GtkWidget   *view;        /* EvView, owned by the scrolled window */
+	GtkWidget   *scrolled;    /* GtkScrolledWindow that holds the view, owned by the box */
 	GtkWidget   *box;         /* GtkBox that holds the view + scrolled window */
 	GFile       *location;
 	gint         page;
@@ -213,6 +214,35 @@ ev_tab_get_view (EvTab *tab)
 {
 	g_return_val_if_fail (EV_IS_TAB (tab), NULL);
 	return tab->priv->view;
+}
+
+void
+ev_tab_set_view (EvTab  *tab,
+                 EvView *view)
+{
+	GtkWidget *scrolled;
+
+	g_return_if_fail (EV_IS_TAB (tab));
+	g_return_if_fail (EV_IS_VIEW (view));
+
+	if (tab->priv->scrolled) {
+		gtk_widget_destroy (tab->priv->scrolled);
+		tab->priv->scrolled = NULL;
+		tab->priv->view = NULL;
+	}
+
+	scrolled = gtk_scrolled_window_new (NULL, NULL);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
+					GTK_POLICY_AUTOMATIC,
+					GTK_POLICY_AUTOMATIC);
+	gtk_container_add (GTK_CONTAINER (scrolled), GTK_WIDGET (view));
+	ev_gtk_box_append (tab->priv->box, scrolled);
+
+	tab->priv->scrolled = scrolled;
+	tab->priv->view = GTK_WIDGET (view);
+
+	gtk_widget_show (GTK_WIDGET (view));
+	gtk_widget_show (scrolled);
 }
 
 EvDocument *

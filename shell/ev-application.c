@@ -101,6 +101,17 @@ static void ev_application_open_uri_in_window (EvApplication  *application,
                                                EvWindowRunMode mode,
                                                const gchar    *search_string,
                                                guint           timestamp);
+static EvTabbedWindow *
+ev_application_get_first_tabbed_window (EvApplication *application,
+                                        GdkScreen     *screen);
+static void _ev_application_open_uri_in_tabbed_window (EvApplication   *application,
+                                                       EvTabbedWindow  *tabbed_window,
+                                                       const gchar     *uri,
+                                                       GdkScreen       *screen,
+                                                       EvLinkDest      *dest,
+                                                       EvWindowRunMode  mode,
+                                                       const gchar     *search_string,
+                                                       guint            timestamp);
 
 /**
  * ev_application_new:
@@ -661,6 +672,13 @@ ev_application_register_uri (EvApplication  *application,
 
         windows = gtk_application_get_windows (GTK_APPLICATION (application));
         for (l = windows; l != NULL; l = g_list_next (l)) {
+            if (EV_IS_TABBED_WINDOW (l->data)) {
+                _ev_application_open_uri_in_tabbed_window (
+                    application, EV_TABBED_WINDOW (l->data),
+                    uri, screen, dest, mode, search_string, timestamp);
+                continue;
+            }
+
             if (!EV_IS_WINDOW (l->data))
                 continue;
 
@@ -773,6 +791,81 @@ ev_application_open_uri_in_window (EvApplication  *application,
     }
 }
 
+static EvTabbedWindow *
+ev_application_get_first_tabbed_window (EvApplication *application,
+                                        GdkScreen     *screen)
+{
+    GList *windows, *l;
+
+    windows = gtk_application_get_windows (GTK_APPLICATION (application));
+    for (l = windows; l != NULL; l = g_list_next (l)) {
+        if (!EV_IS_TABBED_WINDOW (l->data))
+            continue;
+
+        if (screen &&
+            gtk_window_get_screen (GTK_WINDOW (l->data)) != screen)
+            continue;
+
+        return EV_TABBED_WINDOW (l->data);
+    }
+
+    return NULL;
+}
+
+static void
+_ev_application_open_uri_in_tabbed_window (EvApplication   *application,
+                                           EvTabbedWindow  *tabbed_window,
+                                           const gchar     *uri,
+                                           GdkScreen       *screen,
+                                           EvLinkDest      *dest,
+                                           EvWindowRunMode  mode,
+                                           const gchar     *search_string,
+                                           guint            timestamp)
+{
+    GFile  *file;
+    GError *error = NULL;
+
+    if (uri == NULL)
+        uri = application->uri;
+
+    if (screen) {
+        ev_stock_icons_set_screen (screen);
+        gtk_window_set_screen (GTK_WINDOW (tabbed_window), screen);
+    }
+
+    if (!gtk_widget_get_realized (GTK_WIDGET (tabbed_window))) {
+        gtk_widget_hide (GTK_WIDGET (tabbed_window));
+        gtk_widget_realize (GTK_WIDGET (tabbed_window));
+    }
+
+    if (uri == NULL) {
+        /* Reload request (no URI): focus the active document. */
+        EvTab *active = ev_tab_manager_get_active (
+            ev_tabbed_window_get_tab_manager (tabbed_window));
+        if (active)
+            file = ev_tab_get_location (active);
+        else
+            return;
+    } else {
+        file = g_file_new_for_uri (uri);
+    }
+
+    if (!file)
+        return;
+
+    ev_tabbed_window_open_file (tabbed_window, file, &error);
+    g_object_unref (file);
+
+    if (error) {
+        g_printerr ("Error opening %s: %s\n", uri ? uri : "(null)",
+                    error->message);
+        g_error_free (error);
+    }
+
+    gtk_widget_show (GTK_WIDGET (tabbed_window));
+    gtk_window_present_with_time (GTK_WINDOW (tabbed_window), timestamp);
+}
+
 static void
 _ev_application_open_uri_at_dest (EvApplication  *application,
                                   const gchar    *uri,
@@ -782,6 +875,26 @@ _ev_application_open_uri_at_dest (EvApplication  *application,
                                   const gchar    *search_string,
                                   guint           timestamp)
 {
+    GSettings *settings = g_settings_new ("org.x.reader");
+    gboolean tabbed_mode = g_settings_get_boolean (settings, "tabbed-mode");
+    g_object_unref (settings);
+
+    if (tabbed_mode) {
+        EvTabbedWindow *tabbed_window =
+            ev_application_get_first_tabbed_window (application, screen);
+
+        if (!tabbed_window) {
+            GtkWidget *new_window = ev_application_create_window (application);
+            tabbed_window = EV_TABBED_WINDOW (new_window);
+        }
+
+        _ev_application_open_uri_in_tabbed_window (application,
+                                                   tabbed_window,
+                                                   uri, screen, dest, mode,
+                                                   search_string, timestamp);
+        return;
+    }
+
     EvWindow  *empty_window;
     GtkWidget *new_window;
 
@@ -951,6 +1064,13 @@ handle_reload_cb (EvXreaderApplication   *object,
 
     windows = gtk_application_get_windows (GTK_APPLICATION ((application)));
     for (l = windows; l != NULL; l = g_list_next (l)) {
+         if (EV_IS_TABBED_WINDOW (l->data)) {
+             _ev_application_open_uri_in_tabbed_window (
+                 application, EV_TABBED_WINDOW (l->data),
+                 NULL, screen, dest, mode, search_string, timestamp);
+             continue;
+         }
+
          if (!EV_IS_WINDOW (l->data))
              continue;
 
@@ -1066,7 +1186,8 @@ ev_application_activate (GApplication *gapplication)
 
         windows = gtk_application_get_windows (GTK_APPLICATION (application));
         for (l = windows; l != NULL; l = l->next) {
-                if (!EV_IS_WINDOW (l->data))
+                if (!EV_IS_WINDOW (l->data) &&
+                    !EV_IS_TABBED_WINDOW (l->data))
                         continue;
 
                 gtk_window_present (GTK_WINDOW (l->data));
@@ -1288,7 +1409,8 @@ ev_application_has_window (EvApplication *application)
 
     windows = gtk_application_get_windows (GTK_APPLICATION (application));
     for (l = windows; l != NULL; l = l->next) {
-        if (!EV_IS_WINDOW (l->data))
+        if (!EV_IS_WINDOW (l->data) &&
+            !EV_IS_TABBED_WINDOW (l->data))
             continue;
 
         return TRUE;
@@ -1305,7 +1427,8 @@ ev_application_get_n_windows (EvApplication *application)
 
         windows = gtk_application_get_windows (GTK_APPLICATION (application));
         for (l = windows; l != NULL && !retval; l = l->next) {
-                if (!EV_IS_WINDOW (l->data))
+                if (!EV_IS_WINDOW (l->data) &&
+                    !EV_IS_TABBED_WINDOW (l->data))
                         continue;
 
             retval++;
@@ -1363,6 +1486,13 @@ GtkWidget *
 ev_application_create_window (EvApplication *application)
 {
 	g_return_val_if_fail (EV_IS_APPLICATION (application), NULL);
+
+	GSettings *settings = g_settings_new ("org.x.reader");
+	gboolean tabbed = g_settings_get_boolean (settings, "tabbed-mode");
+	g_object_unref (settings);
+
+	if (tabbed)
+		return ev_tabbed_window_new (GTK_APPLICATION (g_application_get_default ()));
 
 	return ev_window_new ();
 }

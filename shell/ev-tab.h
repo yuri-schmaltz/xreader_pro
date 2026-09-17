@@ -29,6 +29,7 @@
 #include <gtk/gtk.h>
 
 #include "ev-document.h"
+#include "ev-document-model.h"
 #include "ev-view.h"
 
 G_BEGIN_DECLS
@@ -69,6 +70,11 @@ GtkWidget    *ev_tab_new               (EvDocument *document);
 
 /* The EvView inside this tab.  Returns a borrowed reference. */
 GtkWidget    *ev_tab_get_view          (EvTab      *tab);
+
+/* Set the EvView (and its scrolled window) inside this tab.
+ * The tab takes ownership of @view via the container. */
+void          ev_tab_set_view          (EvTab      *tab,
+                                       EvView      *view);
 
 /* The document inside this tab.  Returns a borrowed reference. */
 EvDocument   *ev_tab_get_document      (EvTab      *tab);

@@ -638,6 +638,9 @@ ev_document_get_title (EvDocument *document)
 {
 	g_return_val_if_fail (EV_IS_DOCUMENT (document), NULL);
 
+	if (document->priv->info == NULL)
+		return NULL;
+
 	return (document->priv->info->fields_mask & EV_DOCUMENT_INFO_TITLE) ?
 		document->priv->info->title : NULL;
 }
