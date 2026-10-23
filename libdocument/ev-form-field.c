@@ -143,6 +143,54 @@ ev_form_field_signature_class_init (EvFormFieldSignatureClass *klass)
 {
 }
 
+/**
+ * ev_form_field_type_to_string:
+ * @type: an #EvFormFieldType
+ *
+ * Returns the canonical string name for @type.  See
+ * ev_form_field_type_to_string() in ev-form-field.h for
+ * the full contract.
+ *
+ * Since: 4.8.0
+ */
+const gchar *
+ev_form_field_type_to_string (EvFormFieldType type)
+{
+	switch (type) {
+	case EV_FORM_FIELD_TEXT:       return "text";
+	case EV_FORM_FIELD_BUTTON:     return "button";
+	case EV_FORM_FIELD_CHOICE:     return "choice";
+	case EV_FORM_FIELD_SIGNATURE:  return "signature";
+	default:                       return "unknown";
+	}
+}
+
+/**
+ * ev_form_field_type_from_string:
+ * @str: a string (or %NULL)
+ *
+ * Returns the #EvFormFieldType for @str.  See
+ * ev_form_field_type_from_string() in ev-form-field.h for
+ * the full contract.
+ *
+ * Since: 4.8.0
+ */
+EvFormFieldType
+ev_form_field_type_from_string (const gchar *str)
+{
+	if (str == NULL)
+		return EV_FORM_FIELD_TEXT;
+	if (g_ascii_strcasecmp (str, "text") == 0)
+		return EV_FORM_FIELD_TEXT;
+	if (g_ascii_strcasecmp (str, "button") == 0)
+		return EV_FORM_FIELD_BUTTON;
+	if (g_ascii_strcasecmp (str, "choice") == 0)
+		return EV_FORM_FIELD_CHOICE;
+	if (g_ascii_strcasecmp (str, "signature") == 0)
+		return EV_FORM_FIELD_SIGNATURE;
+	return EV_FORM_FIELD_TEXT;
+}
+
 EvFormField *
 ev_form_field_text_new (gint                id,
 			EvFormFieldTextType type)
