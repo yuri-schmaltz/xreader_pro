@@ -41,6 +41,15 @@
       <summary>Open documents in tabs in a single window</summary>
       <description>When true, opening a new document adds a new tab to the existing window instead of creating a new window.</description>
     </key>
+    <key name="view-mode" type="s">
+      <default>'single'</default>
+      <summary>Document view mode</summary>
+      <description>The current view mode: 'single' (one page at a time),
+      'continuous' (one page after the other, scrolling), or 'dual'
+      (two pages side by side).  Backed by the stateful 'view-mode'
+      GAction (PR #114) which keeps the legacy 'continuous' and
+      'dual-page' boolean GSettings keys in sync.</description>
+    </key>
     <child name="default" schema="org.x.reader.default"/>
     <child name="toolbar" schema="org.x.reader.toolbar"/>
   </schema>
@@ -75,6 +84,14 @@
     </key>
     <key name="fullscreen" type="b">
       <default>false</default>
+    </key>
+    <key name="presentation" type="b">
+      <default>false</default>
+      <summary>Presentation mode active</summary>
+      <description>Whether the current window is in presentation mode
+      (full-screen, page-by-page, with esc to exit).  Backed by the
+      stateful 'presentation' GAction (PR #114).  NOT persisted across
+      sessions -- a presentation is always a one-shot event.</description>
     </key>
     <key name="sidebar-page" type="s">
       <default>'links'</default>
