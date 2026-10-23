@@ -46,7 +46,7 @@ err_count=0
 # Allowed category prefixes
 # ---------------------------------------------------------------------------
 
-KNOWN_PREFIXES='^(fix|feat|chore|refactor|docs|test|ci|tools|build|libdocument|libview|shell|backend|thumbnailer|previewer|data|debian|fuzz|meson|cut-n-paste|flatpak|snap)\/'
+KNOWN_PREFIXES='^(fix|feat|chore|refactor|docs|test|ci|tools|build|libdocument|libview|shell|backend|thumbnailer|previewer|data|debian|fuzz|meson|cut-n-paste|snap)\/'
 
 # ---------------------------------------------------------------------------
 # Lint one branch name

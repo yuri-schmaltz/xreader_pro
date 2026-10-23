@@ -94,7 +94,7 @@
           <li>ev_form_field_type_to_string / _from_string helpers (PR #78) + 9 unit tests (PR #79)</li>
           <li>ev_rectangle_intersect helper (PR #87) + 9 unit tests (PR #88)</li>
           <li>7 GAction entries (B1 phase 1) -- quit, help, about, open-location, print, save, find (PRs #76, #77, #89)</li>
-          <li>Flatpak + Snap manifests (PRs #74, #75)</li>
+          <li>Snap manifest (PR #75)</li>
           <li>AppStream expansion (PR #73)</li>
           <li>Full doc set: CONTRIBUTING, CODE_OF_CONDUCT, SUPPORT, ARCHITECTURE, ROADMAP, GACTION_MIGRATION, TABBED_VIEW + TABBED_VIEW_TEST_PLAN (PRs #91-#95, #103, #105)</li>
           <li>96 unit tests across 11 executables + 2 fuzz harnesses with 11 seeds</li>

@@ -188,9 +188,6 @@ New helpers
 Build artifacts
 ~~~~~~~~~~~~~~~
 
-* `flatpak/io.github.yuri_schmaltz.Xreader.json` --
-  Flatpak manifest for the sandboxed install path.
-  (PR #74)
 * `snap/snapcraft.yaml` -- Snap manifest for the
   snapd-based install path.  (PR #75)
 

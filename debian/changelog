@@ -39,7 +39,7 @@ xreader (4.8.0) zena; urgency=medium
       starter) + 9 tests (PRs #78, #79)
     - ev_rectangle_intersect + 9 tests (PRs #87, #88)
     - 7 GAction entries (B1 phase 1) (PRs #76, #77, #89)
-    - Flatpak + Snap manifests (PRs #74, #75)
+    - Snap manifest (PR #75)
     - AppStream expansion (PR #73)
     - Full doc set: CONTRIBUTING, CODE_OF_CONDUCT, SUPPORT,
       ARCHITECTURE, ROADMAP, GACTION_MIGRATION (PRs #91-#95)

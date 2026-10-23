@@ -52,7 +52,7 @@ Branch names follow the rules in `tools/lint-branches.sh`:
     `ci/`, `tools/`, `build/`, `libdocument/`, `libview/`,
     `shell/`, `backend/`, `thumbnailer/`, `previewer/`,
     `data/`, `debian/`, `fuzz/`, `meson/`, `cut-n-paste/`,
-    `flatpak/`, `snap/`).
+    `snap/`).
   - Must have a kebab-case description (lowercase letters,
     digits, hyphens, dots -- dots are allowed for
     `release-X.Y.Z` branches).

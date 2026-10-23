@@ -91,9 +91,7 @@ C = Long-term, D = Build/CI/Dev tools, E = Documentation).
   - **D13** `tests/meson.build` + `fuzz/meson.build`
     cleanups -- 4.7.0 -- Bounded -- **DONE** (PRs #25,
     #33, #41, #45, #60, #79, #88).
-  - **D14** Flatpak manifest -- 4.8.0 -- Bounded --
-    **DONE** (PR #74).
-  - **D15** Snap manifest -- 4.8.0 -- Bounded --
+  - **D14** Snap manifest -- 4.8.0 -- Bounded --
     **DONE** (PR #75).
   - **D16** `_FORTIFY_SOURCE=3` + `-fstack-protector-strong`
     -- 4.8.0 -- Bounded -- **DONE** (PR #81).
