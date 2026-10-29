@@ -17,7 +17,7 @@
 
 ## 🌟 Key Features & Highlights
 
-### 📑 Optional Multi-Document Tabbed Viewing (opt-in)
+### 📑 Multi-Document Tabbed Viewing (opt-in, in progress)
 * **Tabbed Window Mode**: opt-in via `--tabbed`/`-T` CLI flag or the `tabbed-mode` GSettings key. When enabled, opens a separate top-level window (`EvTabbedWindow`) that hosts multiple documents in tabs. When disabled (the default), each document opens in its own `EvWindow` (the classic Evince behaviour).
 * **Smart Tab Header Formatting**: Document icons, middle truncation, per-tab close buttons.
 * **Session & State Preservation**: Each tab preserves its own page number, zoom level, and find query across tab switches.
@@ -55,7 +55,7 @@
 | Fuzz harness | ✅ libFuzzer | `fuzz/fuzz-document-load.c`, run for 60s in CI |
 | GTK 3 | ✅ working | default target |
 | GTK 4 | 🟡 in progress | shims in `ev-gtk-compat.h`, ~35 call sites migrated |
-| Tabbed view | ✅ working | opt-in via `--tabbed` or `tabbed-mode` GSettings |
+| Tabbed view | 🟡 in progress | opt-in via `--tabbed` or `tabbed-mode` GSettings; foundation + open flow landed, full chrome pending |
 | OCR | ✅ working | Tesseract backend, 2 unit tests |
 | X.509 signatures | ✅ working | Poppler integration, 2 unit tests |
 
