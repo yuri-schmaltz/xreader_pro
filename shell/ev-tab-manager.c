@@ -21,6 +21,10 @@
 #include <config.h>
 #include "ev-tab-manager.h"
 
+#include "ev-document.h"
+#include "ev-document-model.h"
+#include "ev-view.h"
+
 #define EV_TAB_MANAGER_REOPEN_STACK_MAX 10
 
 typedef struct {
@@ -370,6 +374,21 @@ ev_tab_manager_reopen_last_closed_tab (EvTabManager *manager)
 		ev_tab_set_location (tab, entry->location);
 	if (entry->page >= 0)
 		ev_tab_set_page (tab, entry->page);
+
+	/* Rebuild the rendering pipeline so the reopened tab is
+	 * actually displayed (mirrors ev_tabbed_window_open_file).
+	 * Guard on dimensions so we don't create a view for
+	 * documents that cannot be rendered (e.g. empty/fake
+	 * documents used by the unit tests). */
+	if (ev_document_get_n_pages (entry->document) > 0 &&
+	    ev_document_check_dimensions (entry->document)) {
+		EvDocumentModel *model = ev_document_model_new ();
+		EvView *view = EV_VIEW (ev_view_new ());
+		ev_view_set_model (view, model);
+		ev_document_model_set_document (model, entry->document);
+		g_object_unref (model);
+		ev_tab_set_view (tab, view);
+	}
 
 	ev_tab_manager_append_tab (manager, tab);
 

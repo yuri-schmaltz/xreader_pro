@@ -95,8 +95,65 @@ update_empty_state (EvTabbedWindow *window)
 	gtk_widget_set_sensitive (window->priv->statusbar, has_tabs);
 }
 
+static void
+on_open_activate (GtkMenuItem    *item,
+                  gpointer        user_data)
+{
+	EvTabbedWindow *window = EV_TABBED_WINDOW (user_data);
+
+#if !GTK_CHECK_VERSION (4, 0, 0)
+	GtkWidget *dialog = gtk_file_chooser_dialog_new (
+		_("Open Document"),
+		GTK_WINDOW (window),
+		GTK_FILE_CHOOSER_ACTION_OPEN,
+		_("_Cancel"), GTK_RESPONSE_CANCEL,
+		_("_Open"), GTK_RESPONSE_ACCEPT,
+		NULL);
+
+	gtk_file_chooser_set_select_multiple (
+		GTK_FILE_CHOOSER (dialog), TRUE);
+
+	if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
+		GSList *files = gtk_file_chooser_get_filenames (
+			GTK_FILE_CHOOSER (dialog));
+		GSList *l;
+		for (l = files; l != NULL; l = l->next) {
+			gchar *uri = g_filename_to_uri ((const gchar *) l->data,
+			                                NULL, NULL);
+			if (!uri)
+				continue;
+			GFile *file = g_file_new_for_uri (uri);
+			ev_tabbed_window_open_file (window, file, NULL);
+			g_object_unref (file);
+			g_free (uri);
+			g_free (l->data);
+		}
+		g_slist_free (files);
+	}
+
+	gtk_widget_destroy (dialog);
+#else
+	(void) window;
+#endif
+}
+
+static void
+on_close_tab_activate (GtkMenuItem *item,
+                       gpointer     user_data)
+{
+	ev_tabbed_window_close_active_tab (EV_TABBED_WINDOW (user_data));
+}
+
+static void
+on_quit_activate (GtkMenuItem *item,
+                  gpointer     user_data)
+{
+	g_application_quit (G_APPLICATION (gtk_window_get_application (
+		GTK_WINDOW (user_data))));
+}
+
 static GtkWidget *
-build_menubar (void)
+build_menubar (EvTabbedWindow *window)
 {
 	GtkWidget *menubar = gtk_menu_bar_new ();
 
@@ -108,15 +165,21 @@ build_menubar (void)
 
 	GtkWidget *open_item = gtk_menu_item_new_with_label (_("Open..."));
 	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), open_item);
+	g_signal_connect (open_item, "activate",
+	                  G_CALLBACK (on_open_activate), window);
 
 	GtkWidget *close_tab_item = gtk_menu_item_new_with_label (_("Close Tab"));
 	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), close_tab_item);
+	g_signal_connect (close_tab_item, "activate",
+	                  G_CALLBACK (on_close_tab_activate), window);
 
 	GtkWidget *sep = gtk_separator_menu_item_new ();
 	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), sep);
 
 	GtkWidget *quit_item = gtk_menu_item_new_with_label (_("Quit"));
 	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), quit_item);
+	g_signal_connect (quit_item, "activate",
+	                  G_CALLBACK (on_quit_activate), window);
 
 	gtk_widget_show_all (file_item);
 
@@ -128,9 +191,15 @@ build_menubar (void)
 
 	GtkWidget *next_tab = gtk_menu_item_new_with_label (_("Next Tab"));
 	gtk_menu_shell_append (GTK_MENU_SHELL (tabs_menu), next_tab);
+	g_signal_connect_swapped (next_tab, "activate",
+	                          G_CALLBACK (ev_tabbed_window_select_next_tab),
+	                          window);
 
 	GtkWidget *prev_tab = gtk_menu_item_new_with_label (_("Previous Tab"));
 	gtk_menu_shell_append (GTK_MENU_SHELL (tabs_menu), prev_tab);
+	g_signal_connect_swapped (prev_tab, "activate",
+	                          G_CALLBACK (ev_tabbed_window_select_prev_tab),
+	                          window);
 
 	gtk_widget_show_all (tabs_item);
 
@@ -332,7 +401,7 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	window->priv->main_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add (GTK_CONTAINER (window), window->priv->main_box);
 
-	window->priv->menubar = build_menubar ();
+	window->priv->menubar = build_menubar (window);
 	ev_gtk_box_append (window->priv->main_box, window->priv->menubar);
 
 	window->priv->toolbar = build_toolbar ();
@@ -373,7 +442,7 @@ gtk_widget_show_all (window->priv->main_box);
 	 * never takes effect. */
 	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
-	gtk_widget_show (GTK_WINDOW (window));
+	gtk_widget_show (GTK_WIDGET (window));
 
 	/* Keyboard shortcuts via a GtkEventControllerKey.  Production-ready
 	 * approach (works with GTK 3.24+). */

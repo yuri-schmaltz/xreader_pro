@@ -1426,7 +1426,7 @@ ev_application_get_n_windows (EvApplication *application)
     guint  retval = 0;
 
         windows = gtk_application_get_windows (GTK_APPLICATION (application));
-        for (l = windows; l != NULL && !retval; l = l->next) {
+        for (l = windows; l != NULL; l = l->next) {
                 if (!EV_IS_WINDOW (l->data) &&
                     !EV_IS_TABBED_WINDOW (l->data))
                         continue;
