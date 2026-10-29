@@ -440,7 +440,7 @@ gtk_widget_show_all (window->priv->main_box);
 	/* Set the default size *before* showing the window, otherwise the
 	 * window is realized with a stale (tiny) geometry and the default
 	 * never takes effect. */
-	gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
+	gtk_window_set_default_size (GTK_WINDOW (window), 600, 600);
 
 	gtk_widget_show (GTK_WIDGET (window));
 
