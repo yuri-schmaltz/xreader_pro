@@ -402,26 +402,30 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	gtk_container_add (GTK_CONTAINER (window), window->priv->main_box);
 
 	window->priv->menubar = build_menubar (window);
-	ev_gtk_box_append (window->priv->main_box, window->priv->menubar);
-	gtk_widget_set_vexpand (window->priv->menubar, FALSE);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
+	                       window->priv->menubar,
+	                       FALSE, FALSE, 0);
 
 	window->priv->toolbar = build_toolbar ();
-	ev_gtk_box_append (window->priv->main_box, window->priv->toolbar);
-	gtk_widget_set_vexpand (window->priv->toolbar, FALSE);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
+	                       window->priv->toolbar,
+	                       FALSE, FALSE, 0);
 
 	window->priv->notebook = gtk_notebook_new ();
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (window->priv->notebook), FALSE);
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (window->priv->notebook), TRUE);
-	ev_gtk_box_append (window->priv->main_box, window->priv->notebook);
-	gtk_widget_set_vexpand (window->priv->notebook, TRUE);
-	gtk_widget_set_hexpand (window->priv->notebook, TRUE);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
+	                       window->priv->notebook,
+	                       TRUE, TRUE, 0);
 
 	window->priv->empty_label = gtk_label_new (
 		_("Open a document to start.  Drag a file here, or use File > Open."));
 	gtk_widget_set_vexpand (window->priv->empty_label, TRUE);
 	gtk_widget_set_valign (window->priv->empty_label, GTK_ALIGN_CENTER);
 	gtk_widget_set_halign (window->priv->empty_label, GTK_ALIGN_CENTER);
-	ev_gtk_box_append (window->priv->main_box, window->priv->empty_label);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
+	                       window->priv->empty_label,
+	                       TRUE, TRUE, 0);
 
 	/* The empty-state label is also a drop target.  When the
 	 * user drags a file to a window with no tabs, the file
@@ -433,10 +437,11 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	                  G_CALLBACK (on_empty_drop), window);
 
 	window->priv->statusbar = gtk_statusbar_new ();
-	ev_gtk_box_append (window->priv->main_box, window->priv->statusbar);
-	gtk_widget_set_vexpand (window->priv->statusbar, FALSE);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
+	                       window->priv->statusbar,
+	                       FALSE, FALSE, 0);
 
-gtk_widget_show_all (window->priv->main_box);
+	gtk_widget_show_all (window->priv->main_box);
 
 	update_empty_state (window);
 
