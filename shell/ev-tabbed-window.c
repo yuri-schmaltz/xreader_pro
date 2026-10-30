@@ -403,14 +403,18 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 
 	window->priv->menubar = build_menubar (window);
 	ev_gtk_box_append (window->priv->main_box, window->priv->menubar);
+	gtk_widget_set_vexpand (window->priv->menubar, FALSE);
 
 	window->priv->toolbar = build_toolbar ();
 	ev_gtk_box_append (window->priv->main_box, window->priv->toolbar);
+	gtk_widget_set_vexpand (window->priv->toolbar, FALSE);
 
 	window->priv->notebook = gtk_notebook_new ();
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (window->priv->notebook), FALSE);
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (window->priv->notebook), TRUE);
 	ev_gtk_box_append (window->priv->main_box, window->priv->notebook);
+	gtk_widget_set_vexpand (window->priv->notebook, TRUE);
+	gtk_widget_set_hexpand (window->priv->notebook, TRUE);
 
 	window->priv->empty_label = gtk_label_new (
 		_("Open a document to start.  Drag a file here, or use File > Open."));
@@ -430,6 +434,7 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 
 	window->priv->statusbar = gtk_statusbar_new ();
 	ev_gtk_box_append (window->priv->main_box, window->priv->statusbar);
+	gtk_widget_set_vexpand (window->priv->statusbar, FALSE);
 
 gtk_widget_show_all (window->priv->main_box);
 
