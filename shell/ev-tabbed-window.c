@@ -25,7 +25,10 @@
 
 #include "ev-tab.h"
 #include "ev-document-factory.h"
+#include "ev-document-model.h"
 #include "ev-gtk-compat.h"
+#include "ev-sidebar.h"
+#include "ev-sidebar-thumbnails.h"
 
 struct _EvTabbedWindowPrivate
 {
@@ -36,6 +39,10 @@ struct _EvTabbedWindowPrivate
 	GtkWidget    *toolbar;
 	GtkWidget    *statusbar;
 	GtkWidget    *empty_label;  /* shown when no tabs are open */
+	GtkWidget    *hpaned;
+	GtkWidget    *sidebar;
+	EvDocumentModel *sidebar_model;  /* owned; bound to EvSidebar for its lifetime */
+	gboolean        updating_sidebar; /* guard against page-changed feedback loop */
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (EvTabbedWindow, ev_tabbed_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -90,9 +97,71 @@ update_empty_state (EvTabbedWindow *window)
 	gboolean has_tabs = ev_tab_manager_get_n_tabs (window->priv->tab_manager) > 0;
 	gtk_widget_set_visible (window->priv->empty_label, !has_tabs);
 	gtk_widget_set_visible (window->priv->notebook,    has_tabs);
+	gtk_widget_set_visible (window->priv->hpaned,      has_tabs);
 	gtk_widget_set_sensitive (window->priv->menubar,   has_tabs);
 	gtk_widget_set_sensitive (window->priv->toolbar,   has_tabs);
 	gtk_widget_set_sensitive (window->priv->statusbar, has_tabs);
+}
+
+/* Point the thumbnail sidebar at the active tab's document.  The
+ * EvSidebar is bound to a single EvDocumentModel for its lifetime
+ * (ev_sidebar_add_page wires each page to that model), so we keep
+ * one sidebar model per window and swap its document/page/rotation
+ * to mirror the active tab's model. */
+static void
+update_sidebar_model (EvTabbedWindow *window,
+                      EvTab          *tab)
+{
+	if (!tab) {
+		gtk_widget_set_visible (window->priv->sidebar, FALSE);
+		return;
+	}
+
+	EvDocument *document = ev_tab_get_document (tab);
+	if (!document) {
+		gtk_widget_set_visible (window->priv->sidebar, FALSE);
+		return;
+	}
+
+	gtk_widget_set_visible (window->priv->sidebar, TRUE);
+
+	EvDocumentModel *sidebar_model = window->priv->sidebar_model;
+	EvDocumentModel *tab_model = ev_tab_get_model (tab);
+
+	window->priv->updating_sidebar = TRUE;
+	ev_document_model_set_document (sidebar_model, document);
+	if (tab_model) {
+		ev_document_model_set_page (
+			sidebar_model,
+			ev_document_model_get_page (tab_model));
+		ev_document_model_set_rotation (
+			sidebar_model,
+			ev_document_model_get_rotation (tab_model));
+	}
+	window->priv->updating_sidebar = FALSE;
+}
+
+/* A thumbnail was clicked (or the sidebar changed page): mirror it
+ * back onto the active tab's model so the main view follows. */
+static void
+on_sidebar_model_page_changed (EvDocumentModel *model,
+                               GParamSpec      *pspec,
+                               EvTabbedWindow  *window)
+{
+	if (window->priv->updating_sidebar)
+		return;
+
+	EvTab *tab = ev_tab_manager_get_active (window->priv->tab_manager);
+	if (!tab)
+		return;
+
+	EvDocumentModel *tab_model = ev_tab_get_model (tab);
+	if (!tab_model)
+		return;
+
+	gint page = ev_document_model_get_page (model);
+	if (page != ev_document_model_get_page (tab_model))
+		ev_document_model_set_page (tab_model, page);
 }
 
 static void
@@ -373,6 +442,7 @@ on_active_changed (EvTabManager    *manager,
 			GTK_NOTEBOOK (window->priv->notebook), page_num);
 
 	update_window_title (window);
+	update_sidebar_model (window, tab);
 }
 
 static void
@@ -380,6 +450,7 @@ ev_tabbed_window_dispose (GObject *object)
 {
 	EvTabbedWindow *window = EV_TABBED_WINDOW (object);
 
+	g_clear_object (&window->priv->sidebar_model);
 	g_clear_object (&window->priv->tab_manager);
 
 	G_OBJECT_CLASS (ev_tabbed_window_parent_class)->dispose (object);
@@ -411,12 +482,38 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	                       window->priv->toolbar,
 	                       FALSE, FALSE, 0);
 
+	window->priv->hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
+	gtk_paned_set_position (GTK_PANED (window->priv->hpaned), 220);
+
+	/* Left sidebar: page thumbnails.  EvSidebar binds each page to
+	 * one EvDocumentModel for its lifetime, so we own a single
+	 * sidebar model and swap its document/page to mirror the active
+	 * tab (see update_sidebar_model). */
+	window->priv->sidebar_model = ev_document_model_new ();
+	g_signal_connect (window->priv->sidebar_model, "notify::page",
+	                  G_CALLBACK (on_sidebar_model_page_changed), window);
+
+	window->priv->sidebar = ev_sidebar_new ();
+	ev_sidebar_set_model (EV_SIDEBAR (window->priv->sidebar),
+	                      window->priv->sidebar_model);
+	{
+		GtkWidget *thumbs = ev_sidebar_thumbnails_new ();
+		ev_sidebar_add_page (EV_SIDEBAR (window->priv->sidebar), thumbs);
+	}
+	gtk_paned_pack1 (GTK_PANED (window->priv->hpaned),
+	                 window->priv->sidebar, FALSE, FALSE);
+	gtk_widget_show (window->priv->sidebar);
+
 	window->priv->notebook = gtk_notebook_new ();
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (window->priv->notebook), FALSE);
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (window->priv->notebook), TRUE);
+	gtk_paned_pack2 (GTK_PANED (window->priv->hpaned),
+	                 window->priv->notebook, TRUE, TRUE);
+
 	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                       window->priv->notebook,
+	                       window->priv->hpaned,
 	                       TRUE, TRUE, 0);
+	gtk_widget_show (window->priv->hpaned);
 
 	window->priv->empty_label = gtk_label_new (
 		_("Open a document to start.  Drag a file here, or use File > Open."));
@@ -591,6 +688,7 @@ ev_tabbed_window_open_file (EvTabbedWindow *window,
 	ev_document_model_set_document (model, document);
 	g_object_unref (model);
 	ev_tab_set_view (tab, view);
+	ev_tab_set_model (tab, model);
 
 	g_object_unref (document);
 	ev_tab_set_location (tab, file);

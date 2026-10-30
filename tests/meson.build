@@ -237,6 +237,9 @@ test_tabbed_integration = executable(
     '../shell/ev-tabbed-window.c',
     '../shell/ev-tab.c',
     '../shell/ev-tab-manager.c',
+    '../shell/ev-sidebar.c',
+    '../shell/ev-sidebar-page.c',
+    '../shell/ev-sidebar-thumbnails.c',
     include_directories: [include_dirs, include_directories('../shell')],
     dependencies: [
         glib,
@@ -265,6 +268,9 @@ test_tabbed_window = executable(
     '../shell/ev-tabbed-window.c',
     '../shell/ev-tab.c',
     '../shell/ev-tab-manager.c',
+    '../shell/ev-sidebar.c',
+    '../shell/ev-sidebar-page.c',
+    '../shell/ev-sidebar-thumbnails.c',
     include_directories: [include_dirs, include_directories('../shell')],
     dependencies: [
         glib,
@@ -357,6 +363,9 @@ test_multi_tab_documents = executable(
     '../shell/ev-tabbed-window.c',
     '../shell/ev-tab.c',
     '../shell/ev-tab-manager.c',
+    '../shell/ev-sidebar.c',
+    '../shell/ev-sidebar-page.c',
+    '../shell/ev-sidebar-thumbnails.c',
     include_directories: [include_dirs, include_directories('../shell')],
     dependencies: [
         glib,

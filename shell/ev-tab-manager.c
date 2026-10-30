@@ -388,6 +388,7 @@ ev_tab_manager_reopen_last_closed_tab (EvTabManager *manager)
 		ev_document_model_set_document (model, entry->document);
 		g_object_unref (model);
 		ev_tab_set_view (tab, view);
+		ev_tab_set_model (tab, model);
 	}
 
 	ev_tab_manager_append_tab (manager, tab);

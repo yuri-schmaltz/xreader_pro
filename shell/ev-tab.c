@@ -27,6 +27,7 @@
 struct _EvTabPrivate
 {
 	EvDocument  *document;
+	EvDocumentModel *model;   /* borrowed, owned by the view */
 	GtkWidget   *view;        /* EvView, owned by the scrolled window */
 	GtkWidget   *scrolled;    /* GtkScrolledWindow that holds the view, owned by the box */
 	GtkWidget   *box;         /* GtkBox that holds the view + scrolled window */
@@ -229,6 +230,7 @@ ev_tab_set_view (EvTab  *tab,
 		gtk_widget_destroy (tab->priv->scrolled);
 		tab->priv->scrolled = NULL;
 		tab->priv->view = NULL;
+		tab->priv->model = NULL;
 	}
 
 	scrolled = gtk_scrolled_window_new (NULL, NULL);
@@ -243,6 +245,24 @@ ev_tab_set_view (EvTab  *tab,
 
 	gtk_widget_show (GTK_WIDGET (view));
 	gtk_widget_show (scrolled);
+}
+
+void
+ev_tab_set_model (EvTab            *tab,
+                  EvDocumentModel  *model)
+{
+	g_return_if_fail (EV_IS_TAB (tab));
+	g_return_if_fail (model == NULL || EV_IS_DOCUMENT_MODEL (model));
+
+	/* Borrowed reference: the model is owned by the view. */
+	tab->priv->model = model;
+}
+
+EvDocumentModel *
+ev_tab_get_model (EvTab *tab)
+{
+	g_return_val_if_fail (EV_IS_TAB (tab), NULL);
+	return tab->priv->model;
 }
 
 EvDocument *

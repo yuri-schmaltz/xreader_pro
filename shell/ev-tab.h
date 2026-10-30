@@ -79,6 +79,12 @@ void          ev_tab_set_view          (EvTab      *tab,
 /* The document inside this tab.  Returns a borrowed reference. */
 EvDocument   *ev_tab_get_document      (EvTab      *tab);
 
+/* The EvDocumentModel driving the view in this tab.  Returns a
+ * borrowed reference.  NULL if the tab has no model yet. */
+EvDocumentModel *ev_tab_get_model      (EvTab      *tab);
+void             ev_tab_set_model      (EvTab      *tab,
+                                        EvDocumentModel *model);
+
 /* The file the document was loaded from, or NULL if the document is
  * not associated with a file (e.g. it was loaded from a stream or
  * a remote URI).  Returns a copy that the caller must g_free(). */
