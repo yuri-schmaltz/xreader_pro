@@ -57,7 +57,7 @@ option_version_cb (const gchar *option_name,
                    gpointer     data,
                    GError     **error)
 {
-  g_print ("%s %s\n", g_get_application_name(), VERSION);
+  g_print ("Xreader Pro %s\n", VERSION);
   exit (0);
 
   /* Keep compiler quiet */
