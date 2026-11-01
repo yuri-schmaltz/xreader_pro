@@ -69,7 +69,7 @@
     </release>
     <release version="4.8.0" date="2026-07-30">
       <description>
-        <p>30 self-PRs landed in the yuri-schmaltz/xreader fork, covering:</p>
+        <p>30 self-PRs landed in the yuri-schmaltz/xreader_pro fork, covering:</p>
         <ul>
           <li>NEW: C3 Tabbed view (PRs #96-#107) -- open multiple documents in tabs in a single window. Keyboard shortcuts (Ctrl+Tab, Ctrl+W, Ctrl+Shift+T), drag-and-drop, reopen-closed-tab, session save/restore. --tabbed / -T CLI flag + tabbed-mode GSettings.</li>
           <li>gtk-doc blocks on 9 public headers (PRs #52, #56-#60)</li>
@@ -92,7 +92,7 @@
     </release>
     <release version="4.7.0" date="2026-07-28">
       <description>
-        <p>31 self-PRs landed in the yuri-schmaltz/xreader fork, covering:</p>
+        <p>31 self-PRs landed in the yuri-schmaltz/xreader_pro fork, covering:</p>
         <ul>
           <li>4 command-injection / buffer-overflow security fixes (PRs #1, #2, #10, #18)</li>
           <li>5 GTK_STOCK_* deprecation cleanups (PRs #3-#7)</li>
