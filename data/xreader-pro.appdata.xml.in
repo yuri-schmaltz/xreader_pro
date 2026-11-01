@@ -5,32 +5,21 @@
  <id>xreader-pro.desktop</id>
  <metadata_license>CC0-1.0</metadata_license>
  <project_license>GPL-2.0+</project_license>
- <name>Document Viewer</name>
- <_summary>A Document Viewer</_summary>
+ <name>Xreader Pro</name>
+ <_summary>A multi-page document viewer with tabbed browsing</_summary>
  <_description>
   <p>
-   Xreader is a simple multi-page document viewer. It can display and
-   print PostScript (PS), Encapsulated PostScript (EPS), DJVU, DVI,
-   XPS and Portable Document Format (PDF) files, as well as comic book
-   archive files. When supported by the document, it also allows
-   searching for text, copying text to the clipboard, hypertext navigation
-   and table-of-contents bookmarks.
+   Xreader Pro is a multi-page document viewer with native tabbed
+   browsing. It can display and print PostScript (PS), Encapsulated
+   PostScript (EPS), DJVU, DVI, XPS and Portable Document Format (PDF)
+   files, as well as comic book archive files. When supported by the
+   document, it also allows searching for text, copying text to the
+   clipboard, hypertext navigation and table-of-contents bookmarks.
   </p>
  </_description>
- <url type="homepage">http://github.com/linuxmint/xreader</url>
- <url type="bugtracker">http://github.com/linuxmint/xreader/issues</url>
- <project_group>Linux Mint</project_group>
- <developer_name>Linux Mint Team</developer_name>
- <screenshots>
-   <screenshot type="default">
-     <caption>Xreader displaying a PDF document</caption>
-     <image>https://raw.githubusercontent.com/linuxmint/xreader/master/data/screenshot-main.png</image>
-   </screenshot>
-   <screenshot>
-     <caption>The bookmarks sidebar</caption>
-     <image>https://raw.githubusercontent.com/linuxmint/xreader/master/data/screenshot-bookmarks.png</image>
-   </screenshot>
- </screenshots>
+ <url type="homepage">https://github.com/yuri-schmaltz/xreader_pro</url>
+ <url type="bugtracker">https://github.com/yuri-schmaltz/xreader_pro/issues</url>
+ <developer_name>Xreader Pro Team</developer_name>
  <categories>
    <category>Office</category>
    <category>Viewer</category>
@@ -49,7 +38,7 @@
    <keyword>postscript</keyword>
  </keywords>
  <provides>
-   <binary>xreader</binary>
+   <binary>xreader-pro</binary>
    <binary>xreader-previewer</binary>
    <binary>xreader-thumbnailer</binary>
  </provides>

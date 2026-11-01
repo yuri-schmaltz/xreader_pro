@@ -1,5 +1,5 @@
 [Desktop Entry]
-_Name=Document Viewer
+Name=Xreader Pro
 _Comment=View multi-page documents
 TryExec=xreader-pro
 Exec=xreader-pro %U
