@@ -49,6 +49,10 @@ shared_module(
     dependencies: pdf_deps,
     install: true,
     install_dir: backendsdir,
+    # Resolve the freshly-built libxreaderdocument instead of any older
+    # same-SONAME copy in the system libdir when running installed.
+    # install_rpath (not build_rpath) survives the install step.
+    install_rpath: join_paths(prefix, libdir),
 )
 
 custom_target(

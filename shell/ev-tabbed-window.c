@@ -677,15 +677,29 @@ build_toolbar (void)
 	return toolbar;
 }
 
+/* Tab width policy: labels start at the title's natural length and are
+ * clamped to [TAB_MIN_WIDTH_CHARS, TAB_MAX_WIDTH_CHARS].  As the bar
+ * fills, update_tab_widths() shrinks each label toward the minimum
+ * before the notebook starts scrolling. */
+#define TAB_MIN_WIDTH_CHARS 8
+#define TAB_MAX_WIDTH_CHARS 24
+
 static GtkWidget *
 build_tab_label (EvTab *tab)
 {
 	GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
 	gchar *title = ev_tab_get_title (tab);
 	GtkWidget *label = gtk_label_new (title);
+	gint len = title ? g_utf8_strlen (title, -1) : 0;
+	gint initial = CLAMP (len, TAB_MIN_WIDTH_CHARS, TAB_MAX_WIDTH_CHARS);
 	g_free (title);
-	gtk_label_set_width_chars (GTK_LABEL (label), 0);
-	gtk_label_set_max_width_chars (GTK_LABEL (label), 24);
+
+	/* Fix the requested width so the tab occupies real space.  Setting
+	 * only max_width_chars would cap an already-tiny request and the
+	 * tab would shrink to an ellipsis; width_chars forces the label to
+	 * request this many characters. */
+	gtk_label_set_width_chars (GTK_LABEL (label), initial);
+	gtk_label_set_max_width_chars (GTK_LABEL (label), initial);
 	gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
 	ev_gtk_box_append (box, label);
 
@@ -712,9 +726,6 @@ build_tab_label (EvTab *tab)
  * TAB_MAX_WIDTH_CHARS].  With few tabs the title is shown in full
  * (up to the max); as more tabs appear the titles ellipsize down to
  * the minimum before the bar starts scrolling. */
-#define TAB_MIN_WIDTH_CHARS 8
-#define TAB_MAX_WIDTH_CHARS 24
-
 static void
 update_tab_widths (EvTabbedWindow *window)
 {
@@ -731,7 +742,7 @@ update_tab_widths (EvTabbedWindow *window)
 	 * notebook border, then divide the rest across the tabs.  ~7px per
 	 * character is a reasonable average for the UI font. */
 	gint per_tab = width / n_tabs;
-	gint chars = (per_tab - 44) / 7;
+	gint chars = (per_tab - 48) / 7;
 	chars = CLAMP (chars, TAB_MIN_WIDTH_CHARS, TAB_MAX_WIDTH_CHARS);
 
 	gint i;
@@ -744,7 +755,12 @@ update_tab_widths (EvTabbedWindow *window)
 		if (children) {
 			GtkWidget *label = GTK_WIDGET (children->data);
 			if (GTK_IS_LABEL (label)) {
-				gtk_label_set_width_chars (GTK_LABEL (label), 0);
+				/* width_chars fixes the requested width so tabs share
+				 * the bar; max_width_chars caps it.  Ellipsize long
+				 * titles instead of letting them push the bar. */
+				gtk_label_set_ellipsize (GTK_LABEL (label),
+				                         PANGO_ELLIPSIZE_END);
+				gtk_label_set_width_chars (GTK_LABEL (label), chars);
 				gtk_label_set_max_width_chars (GTK_LABEL (label), chars);
 			}
 			g_list_free (children);

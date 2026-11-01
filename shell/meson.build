@@ -165,4 +165,9 @@ xreader = executable(
     'main.c',
     dependencies: libshell_dep,
     install: true,
+    # Ensure the installed binary resolves our freshly-built
+    # libxreaderdocument/libxreaderview (and the PDF backend) instead of
+    # any older, same-SONAME copies that may exist in the system libdir.
+    # install_rpath (not build_rpath) survives the install step.
+    install_rpath: join_paths(prefix, libdir),
 )
