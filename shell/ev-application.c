@@ -350,14 +350,14 @@ ev_spawn (const char     *uri,
     gchar      **child_env = NULL;
     GdkDisplay  *display;
 
-    path = g_build_filename (BINDIR, "xreader", NULL);
+    path = g_build_filename (BINDIR, "xreader-pro", NULL);
     if (!g_file_test (path, G_FILE_TEST_EXISTS)) {
         g_free (path);
         path = g_file_read_link ("/proc/self/exe", NULL);
         if (!path)
-            path = g_find_program_in_path ("xreader");
+            path = g_find_program_in_path ("xreader-pro");
         if (!path)
-            path = g_strdup ("xreader");
+            path = g_strdup ("xreader-pro");
     }
 
     /* Page label or index */
@@ -935,7 +935,7 @@ ev_application_open_uri_at_dest (EvApplication  *application,
     g_object_unref (settings);
 
     if (!tabbed_mode && application->uri && strcmp (application->uri, uri) != 0) {
-        /* spawn a new xreader process */
+        /* spawn a new xreader-pro process */
         ev_spawn (uri, screen, dest, mode, search_string, timestamp);
         return;
     } else if (!application->uri) {
@@ -1300,12 +1300,13 @@ about_action_activate (GSimpleAction *action,
 	};
 
 	gtk_show_about_dialog (NULL,
-			      "program-name", "Xreader",
+			      "program-name", "Xreader Pro",
 			      "version", VERSION,
 			      "copyright", "Copyright (C) 2002-2026 The Xreader Authors",
 			      "license-type", GTK_LICENSE_GPL_2_0,
 			      "authors", authors,
-			      "website", "https://github.com/yuri-schmaltz/xreader",
+			      "website", "https://github.com/yuri-schmaltz/xreader_pro",
+			      "logo-icon-name", "xreader-pro",
 			      NULL);
 }
 

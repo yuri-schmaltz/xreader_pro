@@ -161,7 +161,7 @@ libshell_dep = declare_dependency(
 )
 
 xreader = executable(
-    'xreader',
+    'xreader-pro',
     'main.c',
     dependencies: libshell_dep,
     install: true,

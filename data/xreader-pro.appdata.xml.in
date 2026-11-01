@@ -2,7 +2,7 @@
 <component type="desktop">
   <!-- Releases added by tools/bump-version.sh -->
 
- <id>xreader.desktop</id>
+ <id>xreader-pro.desktop</id>
  <metadata_license>CC0-1.0</metadata_license>
  <project_license>GPL-2.0+</project_license>
  <name>Document Viewer</name>

@@ -1,22 +1,22 @@
 .\" Man page for Xreader
-.TH XREADER 1 "8 February 2016"
+.TH XREADER-PRO 1 "8 February 2016"
 .\" Please adjust this date when revising the manpage.
 .\"
 .SH "NAME"
-Xreader \- A Document Viewer
+Xreader Pro \- A Document Viewer
 .SH "SYNTAX"
-.B xreader [OPTIONS...] [FILES...]
+.B xreader-pro [OPTIONS...] [FILES...]
 .SH "DESCRIPTION"
 Xreader is a simple multi-page document viewer. It can display and print PostScript (PS), Encapsulated PostScript (EPS), DJVU, DVI, XPS and Portable Document Format (PDF) files.
 .TP
 When supported by the document, it also allows searching for text, copying text to the clipboard, hypertext navigation, and table-of-contents bookmarks.
 .TP
-This manual page briefly documents the \fBxreader\fR command.
+This manual page briefly documents the \fBxreader-pro\fR command.
 
 .SH "OPTIONS"
 .TP
 \fBfilename(s)...\fR
-Specifies the file to open when \fBxreader\fR starts. If this is not specified, \fBxreader\fR will start with a blank window and you may open a file from the menu or by using the shortcut CTRL+O. Multiple files can be loaded if they are separated by spaces. \fBxreader\fR also supports handling of remote files.
+Specifies the file to open when \fBxreader-pro\fR starts. If this is not specified, \fBxreader-pro\fR will start with a blank window and you may open a file from the menu or by using the shortcut CTRL+O. Multiple files can be loaded if they are separated by spaces. \fBxreader-pro\fR also supports handling of remote files.
 .TP
 \fB\-p, \-\-page\-label=PAGE\fR
 Here you can specify a page label, this page will be selected in the document if it exists.
@@ -25,16 +25,16 @@ Here you can specify a page label, this page will be selected in the document if
 Here you can specify a page number, this page will be selected in the document if it exists.
 .TP
 \fB\-f, \-\-fullscreen\fR
-Start \fBxreader\fR in fullscreen mode. You must specify a document to start in fullscreen mode.
+Start \fBxreader-pro\fR in fullscreen mode. You must specify a document to start in fullscreen mode.
 .TP
 \fB\-s, \-\-presentation\fR
-Start \fBxreader\fR in presentation mode. You must specify a document to start in presentation mode.
+Start \fBxreader-pro\fR in presentation mode. You must specify a document to start in presentation mode.
 .TP
 \fB\-w, \-\-preview\fR
-Start \fBxreader\fR in preview mode. You must specify a document to start in preview mode.
+Start \fBxreader-pro\fR in preview mode. You must specify a document to start in preview mode.
 .TP
 \fB\-T, \-\-tabbed\fR
-Start \fBxreader\fR in tabbed view mode. In this mode, opening a file adds a new tab to the existing window instead of creating a new window. Multiple files given on the command line are all opened in tabs in the same window. The choice is also stored in the \fBorg.x.reader\fR GSettings schema (\fBtabbed-mode\fR key), so subsequent sessions start in tabbed mode. See \fBdocs/TABBED_VIEW.md\fR for the full feature description (keyboard shortcuts: \fBCtrl+Tab\fR, \fBCtrl+W\fR, \fBCtrl+Shift+T\fR; drag-and-drop of files onto tabs; reopen-last-closed-tab).
+Start \fBxreader-pro\fR in tabbed view mode. In this mode, opening a file adds a new tab to the existing window instead of creating a new window. Multiple files given on the command line are all opened in tabs in the same window. The choice is also stored in the \fBorg.x.reader\fR GSettings schema (\fBtabbed-mode\fR key), so subsequent sessions start in tabbed mode. See \fBdocs/TABBED_VIEW.md\fR for the full feature description (keyboard shortcuts: \fBCtrl+Tab\fR, \fBCtrl+W\fR, \fBCtrl+Shift+T\fR; drag-and-drop of files onto tabs; reopen-last-closed-tab).
 .TP
 \fB\-\-new-tab\fR
 Open the given file in a new tab in an existing window (requires \fB\-\-tabbed\fR). If no window is open, behaves like the default (opens a new window).
@@ -54,12 +54,12 @@ Print all command line options.
 This program also accepts the standard GTK options.
 
 .SH "EXAMPLES"
-\fBxreader \-\-preview ~/Desktop/stuff.ps\fR
+\fBxreader-pro \-\-preview ~/Desktop/stuff.ps\fR
 .RS 4
 Open stuff.ps from the current users desktop, in preview mode.
 .RE
 .PP
-\fBxreader \-i 2 \-s ./document.pdf\fR
+\fBxreader-pro \-i 2 \-s ./document.pdf\fR
 .RS 4
 Open document.pdf from the current working directory, on page 2 in presentation mode.
 

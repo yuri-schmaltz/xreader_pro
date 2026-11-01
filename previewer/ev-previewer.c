@@ -133,7 +133,7 @@ main (gint argc, gchar **argv)
 	ev_stock_icons_init ();
 
 	g_set_application_name (_("Print Preview"));
-	gtk_window_set_default_icon_name ("xreader");
+	gtk_window_set_default_icon_name ("xreader-pro");
 
 	model = ev_document_model_new ();
 	window = ev_previewer_window_new (model);

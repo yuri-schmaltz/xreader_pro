@@ -525,7 +525,7 @@ on_about_activate (GtkMenuItem *item,
 	                       "version", VERSION,
 	                       "comments", _("Document Viewer"),
 	                       "website", "https://github.com/yuri-schmaltz/xreader_pro",
-	                       "logo-icon-name", "xreader",
+	                       "logo-icon-name", "xreader-pro",
 	                       "license-type", GTK_LICENSE_GPL_2_0,
 	                       "wrap-license", TRUE,
 	                       NULL);

@@ -53,11 +53,11 @@ foreach icon : icons
 endforeach
 
 app_icons = [
-	'16x16/apps/xreader.png',
-    '22x22/apps/xreader.png',
-    '24x24/apps/xreader.png',
-    '48x48/apps/xreader.png',
-    'scalable/apps/xreader.svg',
+	'16x16/apps/xreader-pro.png',
+    '22x22/apps/xreader-pro.png',
+    '24x24/apps/xreader-pro.png',
+    '48x48/apps/xreader-pro.png',
+    'scalable/apps/xreader-pro.svg',
 ]
 
 foreach icon : app_icons

@@ -3,7 +3,7 @@ subdir('icons')
 data_dir = include_directories('.')
 
 install_data(
-    'xreader.1',
+    'xreader-pro.1',
     install_dir : join_paths(get_option('prefix'), get_option('mandir'), 'man1')
 )
 
@@ -30,15 +30,15 @@ desktop_conf = configuration_data()
 desktop_conf.set('XREADER_MIME_TYPES', xreader_mime_types)
 
 desktop = configure_file(
-    input: 'xreader.desktop.in.in',
-    output: 'xreader.desktop.in',
+    input: 'xreader-pro.desktop.in.in',
+    output: 'xreader-pro.desktop.in',
     configuration: desktop_conf,
 )
 
 custom_target(
     'desktop',
     input: desktop,
-    output: 'xreader.desktop',
+    output: 'xreader-pro.desktop',
     command: [intltool_merge, '-d', '-u', po_dir, '@INPUT@', '@OUTPUT@'],
     install: true,
     install_dir: desktopdir,
@@ -46,8 +46,8 @@ custom_target(
 
 appdata = custom_target(
     'appdata',
-    input: 'xreader.appdata.xml.in',
-    output: 'xreader.appdata.xml',
+    input: 'xreader-pro.appdata.xml.in',
+    output: 'xreader-pro.appdata.xml',
     command: [intltool_merge, '-x', '-u', po_dir, '@INPUT@', '@OUTPUT@'],
     install: true,
     install_dir: join_paths(datadir, 'metainfo'),

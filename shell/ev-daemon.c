@@ -116,13 +116,13 @@ spawn_xreader (const gchar *uri)
     GError  *error = NULL;
 
     /* TODO Check that the uri exists */
-    argv[0] = g_build_filename (BINDIR, "xreader", NULL);
+    argv[0] = g_build_filename (BINDIR, "xreader-pro", NULL);
     argv[1] = (gchar *) uri;
     argv[2] = NULL;
 
     retval = g_spawn_async (NULL /* wd */, argv, NULL /* env */, 0, NULL, NULL, NULL, &error);
     if (!retval) {
-        g_printerr ("Error spawning xreader for uri %s: %s\n", uri, error->message);
+        g_printerr ("Error spawning xreader-pro for uri %s: %s\n", uri, error->message);
         g_error_free (error);
     }
     g_free (argv[0]);

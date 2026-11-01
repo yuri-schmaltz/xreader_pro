@@ -284,7 +284,7 @@ main (int argc, char *argv[])
 
 	ev_stock_icons_init ();
 
-	gtk_window_set_default_icon_name ("xreader");
+	gtk_window_set_default_icon_name ("xreader-pro");
 	g_set_application_name (_("Document Viewer"));
 
     application = ev_application_new ();

@@ -1,12 +1,12 @@
 [Desktop Entry]
 _Name=Document Viewer
 _Comment=View multi-page documents
-TryExec=xreader
-Exec=xreader %U
+TryExec=xreader-pro
+Exec=xreader-pro %U
 StartupNotify=true
 Terminal=false
 Type=Application
-Icon=xreader
+Icon=xreader-pro
 Categories=GTK;Utility;Viewer;
 Keywords=document;viewer;pdf;dvi;ps;xps;tiff;djvu;comics;
 MimeType=@XREADER_MIME_TYPES@

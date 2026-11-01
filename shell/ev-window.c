@@ -5200,11 +5200,11 @@ ev_window_cmd_help_about (GtkAction *action,
 
     gtk_show_about_dialog (
             GTK_WINDOW (ev_window),
-            "program-name", _("Xreader"),
+            "program-name", "Xreader Pro",
             "version", VERSION,
             "license", license_trans,
-            "website", "http://www.github.com/linuxmint/xreader/",
-            "logo-icon-name", "xreader",
+            "website", "https://github.com/yuri-schmaltz/xreader_pro",
+            "logo-icon-name", "xreader-pro",
             "wrap-license", TRUE,
             NULL);
 

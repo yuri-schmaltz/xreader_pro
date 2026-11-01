@@ -1,4 +1,4 @@
-project('xreader', 'c', 'cpp', version : '1.0.0')
+project('xreader-pro', 'c', 'cpp', version : '1.0.0')
 
 gnome = import('gnome')
 i18n = import('i18n')
@@ -318,15 +318,15 @@ pc_conf.set('GTK_API_VERSION', gtk_major == '4' ? '4.0' : '3.0')
 pc_conf.set('GTK_REQUIRED', gtk_major == '4' ? '4.12.0' : '3.14.0')
 
 configure_file(
-    input: 'xreader-document.pc.in',
-    output: 'xreader-document-@0@.pc'.format(api_version),
+    input: 'xreader-pro-document.pc.in',
+    output: 'xreader-pro-document-@0@.pc'.format(api_version),
     configuration: pc_conf,
     install_dir: join_paths(libdir, 'pkgconfig')
 )
 
 configure_file(
-    input: 'xreader-view.pc.in',
-    output: 'xreader-view-@0@.pc'.format(api_version),
+    input: 'xreader-pro-view.pc.in',
+    output: 'xreader-pro-view-@0@.pc'.format(api_version),
     configuration: pc_conf,
     install_dir: join_paths(libdir, 'pkgconfig')
 )
