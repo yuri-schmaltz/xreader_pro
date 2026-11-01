@@ -61,25 +61,25 @@ The tabbed view is implemented in 4 classes:
     of tabs + tracks the active one.  Emits 4 signals
     (tab-added, tab-removed, active-changed, tab-reordered).
   - `EvTabbedWindow` (`shell/ev-tabbed-window.h`): the top-level
-    window.  Composes an EvTabManager + GtkNotebook.  Implements
-    the keyboard shortcuts and drag-and-drop.
+    window.  Composes an EvTabManager + GtkNotebook.  Hosts the
+    shared chrome (menubar, toolbar, thumbnail sidebar, status
+    bar) and implements the keyboard shortcuts and drag-and-drop.
+    Menu actions (zoom, rotate, page navigation, copy, fullscreen)
+    operate on the active tab's view/model.
   - The `tabbed-mode` GSettings key (`org.x.reader`): persistent
     on/off state.
 
 ## What is NOT in 4.8.0 (planned for 4.9.0+)
 
 The 4.8.0 release includes the foundation + the user-visible
-surface (notebook, shortcuts, drag-and-drop, reopen stack).
-The following features are planned for 4.9.0:
+surface (notebook, shortcuts, drag-and-drop, reopen stack).  The
+window now also has shared chrome wired to the active tab: a full
+menubar (File/Edit/View/Go/Tabs/Help), a thumbnail sidebar, and a
+status bar showing the current page and zoom.  The following
+features are still planned for 4.9.0:
 
-  - **Shared chrome**: the menubar, toolbar, sidebar, find
-    bar, and status bar should be shared across all tabs
-    (the 4.8.0 version has a placeholder menubar + toolbar
-    per tab; the full EvWindow integration is a multi-PR
-    refactor).
-  - **Page navigation on the active tab**: the next/prev/
-    zoom/find actions should operate on the active tab's
-    view (not yet wired in 4.8.0).
+  - **Find bar**: an in-window find bar (with next/prev/highlight)
+    bound to the active tab's view.
   - **Session save/restore**: the list of open tabs +
     active tab index should be persisted across sessions.
   - **Multi-file drop**: drag multiple files from a file

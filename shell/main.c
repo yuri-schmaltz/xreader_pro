@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -229,9 +230,27 @@ main (int argc, char *argv[])
 	GOptionContext *context;
 	GError         *error = NULL;
     int             status;
+	const gchar   *locale_dir;
 
-	/* Initialize the i18n stuff */
-	bindtextdomain (GETTEXT_PACKAGE, XREADER_LOCALE_DIR);
+	/* Initialize the i18n stuff.  The locale must be set up before
+	 * any widget is created, otherwise GTK falls back to the "C"
+	 * locale and every translatable string stays untranslated. */
+	setlocale (LC_ALL, "");
+
+	/* The locale dir baked in at build time is
+	 * ${prefix}/share/locale, which does not exist for an uninstalled
+	 * (in-tree) build.  Honor an XREADER_LOCALE_DIR override for
+	 * testing, and fall back to the system-wide translations so a
+	 * dev build still shows a localized UI. */
+	locale_dir = g_getenv ("XREADER_LOCALE_DIR");
+	if (locale_dir == NULL || *locale_dir == '\0')
+		locale_dir = XREADER_LOCALE_DIR;
+
+	if (!g_file_test (locale_dir, G_FILE_TEST_IS_DIR) &&
+	    g_file_test ("/usr/share/locale", G_FILE_TEST_IS_DIR))
+		locale_dir = "/usr/share/locale";
+
+	bindtextdomain (GETTEXT_PACKAGE, locale_dir);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 

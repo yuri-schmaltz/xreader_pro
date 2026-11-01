@@ -1747,3 +1747,60 @@ msgstr "EXPRESSÃO"
 #: ../shell/main.c:76
 msgid "[FILE…]"
 msgstr "[ARQUIVO...]"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#: ../shell/ev-tabbed-window.c
+msgid "Close _Tab"
+msgstr "Fechar a_ba"
+
+#: ../shell/ev-tabbed-window.c
+msgid "Fit Page"
+msgstr "Ajustar à página"
+
+#: ../shell/ev-tabbed-window.c
+msgid "Full Screen"
+msgstr "Tela _cheia"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Next Tab"
+msgstr "Próxima a_ba"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Normal"
+msgstr "_Normal"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Open"
+msgstr "_Abrir"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Open..."
+msgstr "_Abrir..."
+
+#: ../shell/ev-tabbed-window.c
+msgid "Open a document to start.  Drag a file here, or use File > Open."
+msgstr "Abra um documento para começar. Arraste um arquivo até aqui ou use Arquivo > Abrir."
+
+#: ../shell/ev-tabbed-window.c
+#, c-format
+msgid "Page %d of %d"
+msgstr "Página %d de %d"
+
+#: ../shell/ev-tabbed-window.c
+msgid "P_revious Tab"
+msgstr "A_ba anterior"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Quit"
+msgstr "_Sair"
+
+#: ../shell/ev-tabbed-window.c
+msgid "Reopen Closed Tab"
+msgstr "Reabrir aba fechada"
+
+#: ../shell/ev-tabbed-window.c
+msgid "_Tabs"
+msgstr "_Abas"

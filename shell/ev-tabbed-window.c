@@ -43,6 +43,19 @@ struct _EvTabbedWindowPrivate
 	GtkWidget    *sidebar;
 	EvDocumentModel *sidebar_model;  /* owned; bound to EvSidebar for its lifetime */
 	gboolean        updating_sidebar; /* guard against page-changed feedback loop */
+
+	/* Statusbar: an outer box holding a GtkStatusbar (left) and a
+	 * zoom label (right). */
+	GtkWidget    *statusbar_box;
+	GtkWidget    *statusbar_inner;
+	GtkWidget    *zoom_label;
+	guint         statusbar_context;
+
+	/* The active tab's model we watch for page/zoom changes (borrowed). */
+	EvDocumentModel *watched_model;
+	gulong           watched_page_handler;
+	gulong           watched_scale_handler;
+	gulong           watched_sizing_handler;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (EvTabbedWindow, ev_tabbed_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -70,6 +83,9 @@ static void on_empty_drop (GtkWidget         *widget,
                            guint              info,
                            guint              time,
                            gpointer           user_data);
+
+static void update_statusbar (EvTabbedWindow *window);
+static void watch_active_model (EvTabbedWindow *window);
 
 static void
 update_tab_bar_visibility (EvTabbedWindow *window)
@@ -100,7 +116,7 @@ update_empty_state (EvTabbedWindow *window)
 	gtk_widget_set_visible (window->priv->hpaned,      has_tabs);
 	gtk_widget_set_sensitive (window->priv->menubar,   has_tabs);
 	gtk_widget_set_sensitive (window->priv->toolbar,   has_tabs);
-	gtk_widget_set_sensitive (window->priv->statusbar, has_tabs);
+	gtk_widget_set_sensitive (window->priv->statusbar_box, has_tabs);
 }
 
 /* Point the thumbnail sidebar at the active tab's document.  The
@@ -114,12 +130,16 @@ update_sidebar_model (EvTabbedWindow *window,
 {
 	if (!tab) {
 		gtk_widget_set_visible (window->priv->sidebar, FALSE);
+		watch_active_model (window);
+		update_statusbar (window);
 		return;
 	}
 
 	EvDocument *document = ev_tab_get_document (tab);
 	if (!document) {
 		gtk_widget_set_visible (window->priv->sidebar, FALSE);
+		watch_active_model (window);
+		update_statusbar (window);
 		return;
 	}
 
@@ -139,6 +159,9 @@ update_sidebar_model (EvTabbedWindow *window,
 			ev_document_model_get_rotation (tab_model));
 	}
 	window->priv->updating_sidebar = FALSE;
+
+	watch_active_model (window);
+	update_statusbar (window);
 }
 
 /* A thumbnail was clicked (or the sidebar changed page): mirror it
@@ -162,6 +185,115 @@ on_sidebar_model_page_changed (EvDocumentModel *model,
 	gint page = ev_document_model_get_page (model);
 	if (page != ev_document_model_get_page (tab_model))
 		ev_document_model_set_page (tab_model, page);
+}
+
+/* --- helpers to reach the active tab's view/model --- */
+
+static EvView *
+get_active_view (EvTabbedWindow *window)
+{
+	EvTab *active = ev_tab_manager_get_active (window->priv->tab_manager);
+	GtkWidget *view = active ? ev_tab_get_view (active) : NULL;
+	return view ? EV_VIEW (view) : NULL;
+}
+
+static EvDocumentModel *
+get_active_model (EvTabbedWindow *window)
+{
+	EvTab *active = ev_tab_manager_get_active (window->priv->tab_manager);
+	return active ? ev_tab_get_model (active) : NULL;
+}
+
+/* --- statusbar --- */
+
+static void
+update_statusbar (EvTabbedWindow *window)
+{
+	EvDocumentModel *model = get_active_model (window);
+
+	if (window->priv->statusbar_context)
+		gtk_statusbar_remove_all (
+			GTK_STATUSBAR (window->priv->statusbar_inner),
+			window->priv->statusbar_context);
+
+	if (!model) {
+		gtk_label_set_text (GTK_LABEL (window->priv->zoom_label), "");
+		return;
+	}
+
+	EvTab *active = ev_tab_manager_get_active (window->priv->tab_manager);
+	EvDocument *doc = active ? ev_tab_get_document (active) : NULL;
+	gint page = ev_document_model_get_page (model);
+	gint n_pages = doc ? ev_document_get_n_pages (doc) : 0;
+
+	gchar *msg = g_strdup_printf (_("Page %d of %d"), page + 1, n_pages);
+	gtk_statusbar_push (GTK_STATUSBAR (window->priv->statusbar_inner),
+	                    window->priv->statusbar_context, msg);
+	g_free (msg);
+
+	/* Zoom readout on the right. */
+	switch (ev_document_model_get_sizing_mode (model)) {
+	case EV_SIZING_FREE: {
+		gint zoom = (gint) (ev_document_model_get_scale (model) * 100.0 + 0.5);
+		gchar *z = g_strdup_printf ("%d%%", zoom);
+		gtk_label_set_text (GTK_LABEL (window->priv->zoom_label), z);
+		g_free (z);
+		break;
+	}
+	case EV_SIZING_FIT_WIDTH:
+		gtk_label_set_text (GTK_LABEL (window->priv->zoom_label),
+		                    _("Fit Width"));
+		break;
+	case EV_SIZING_BEST_FIT:
+	default:
+		gtk_label_set_text (GTK_LABEL (window->priv->zoom_label),
+		                    _("Fit Page"));
+		break;
+	}
+}
+
+static void
+on_watched_model_notify (EvDocumentModel *model,
+                         GParamSpec      *pspec,
+                         EvTabbedWindow  *window)
+{
+	update_statusbar (window);
+}
+
+static void
+disconnect_watched_model (EvTabbedWindow *window)
+{
+	if (window->priv->watched_model) {
+		g_signal_handler_disconnect (window->priv->watched_model,
+		                             window->priv->watched_page_handler);
+		g_signal_handler_disconnect (window->priv->watched_model,
+		                             window->priv->watched_scale_handler);
+		g_signal_handler_disconnect (window->priv->watched_model,
+		                             window->priv->watched_sizing_handler);
+		window->priv->watched_model = NULL;
+	}
+}
+
+/* Watch the active tab's model so the statusbar tracks page/zoom. */
+static void
+watch_active_model (EvTabbedWindow *window)
+{
+	disconnect_watched_model (window);
+
+	EvDocumentModel *model = get_active_model (window);
+	if (!model)
+		return;
+
+	window->priv->watched_model = model;
+	window->priv->watched_page_handler =
+		g_signal_connect (model, "notify::page",
+		                  G_CALLBACK (on_watched_model_notify), window);
+	window->priv->watched_scale_handler =
+		g_signal_connect (model, "notify::scale",
+		                  G_CALLBACK (on_watched_model_notify), window);
+	window->priv->watched_sizing_handler =
+		g_signal_connect (model, "notify::sizing-mode",
+		                  G_CALLBACK (on_watched_model_notify), window);
 }
 
 static void
@@ -221,57 +353,318 @@ on_quit_activate (GtkMenuItem *item,
 		GTK_WINDOW (user_data))));
 }
 
+static void
+on_reopen_tab_activate (GtkMenuItem *item,
+                        gpointer     user_data)
+{
+	ev_tabbed_window_reopen_last_closed_tab (EV_TABBED_WINDOW (user_data));
+}
+
+/* --- Edit menu --- */
+
+static void
+on_copy_activate (GtkMenuItem *item,
+                  gpointer     user_data)
+{
+	EvView *view = get_active_view (EV_TABBED_WINDOW (user_data));
+	if (view)
+		ev_view_copy (view);
+}
+
+static void
+on_select_all_activate (GtkMenuItem *item,
+                        gpointer     user_data)
+{
+	EvView *view = get_active_view (EV_TABBED_WINDOW (user_data));
+	if (view)
+		ev_view_select_all (view);
+}
+
+/* --- View menu --- */
+
+static void
+on_zoom_in_activate (GtkMenuItem *item,
+                     gpointer     user_data)
+{
+	EvView *view = get_active_view (EV_TABBED_WINDOW (user_data));
+	if (view && ev_view_can_zoom_in (view))
+		ev_view_zoom_in (view);
+}
+
+static void
+on_zoom_out_activate (GtkMenuItem *item,
+                      gpointer     user_data)
+{
+	EvView *view = get_active_view (EV_TABBED_WINDOW (user_data));
+	if (view && ev_view_can_zoom_out (view))
+		ev_view_zoom_out (view);
+}
+
+static void
+on_zoom_normal_activate (GtkMenuItem *item,
+                         gpointer     user_data)
+{
+	EvDocumentModel *model = get_active_model (EV_TABBED_WINDOW (user_data));
+	if (!model)
+		return;
+	ev_document_model_set_sizing_mode (model, EV_SIZING_FREE);
+	ev_document_model_set_scale (model, 1.0);
+}
+
+static void
+on_rotate_left_activate (GtkMenuItem *item,
+                         gpointer     user_data)
+{
+	EvDocumentModel *model = get_active_model (EV_TABBED_WINDOW (user_data));
+	if (!model)
+		return;
+	gint rotation = ev_document_model_get_rotation (model);
+	ev_document_model_set_rotation (model, (rotation + 270) % 360);
+}
+
+static void
+on_rotate_right_activate (GtkMenuItem *item,
+                          gpointer     user_data)
+{
+	EvDocumentModel *model = get_active_model (EV_TABBED_WINDOW (user_data));
+	if (!model)
+		return;
+	gint rotation = ev_document_model_get_rotation (model);
+	ev_document_model_set_rotation (model, (rotation + 90) % 360);
+}
+
+static void
+on_fullscreen_activate (GtkMenuItem *item,
+                        gpointer     user_data)
+{
+	GtkWindow *window = GTK_WINDOW (user_data);
+	GdkWindow *gdkwin = gtk_widget_get_window (GTK_WIDGET (window));
+	gboolean is_fullscreen = FALSE;
+
+	if (gdkwin != NULL)
+		is_fullscreen = (gdk_window_get_state (gdkwin) &
+		                 GDK_WINDOW_STATE_FULLSCREEN) != 0;
+
+	if (is_fullscreen)
+		gtk_window_unfullscreen (window);
+	else
+		gtk_window_fullscreen (window);
+}
+
+/* --- Go menu --- */
+
+static void
+go_to_page (EvTabbedWindow *window,
+            gint            page)
+{
+	EvDocumentModel *model = get_active_model (window);
+	if (!model)
+		return;
+	EvTab *active = ev_tab_manager_get_active (window->priv->tab_manager);
+	EvDocument *doc = active ? ev_tab_get_document (active) : NULL;
+	if (!doc)
+		return;
+	gint n_pages = ev_document_get_n_pages (doc);
+	if (page < 0)
+		page = 0;
+	else if (page >= n_pages)
+		page = n_pages - 1;
+	ev_document_model_set_page (model, page);
+}
+
+static void
+on_prev_page_activate (GtkMenuItem *item,
+                       gpointer     user_data)
+{
+	EvTabbedWindow *window = EV_TABBED_WINDOW (user_data);
+	EvDocumentModel *model = get_active_model (window);
+	if (!model)
+		return;
+	go_to_page (window, ev_document_model_get_page (model) - 1);
+}
+
+static void
+on_next_page_activate (GtkMenuItem *item,
+                       gpointer     user_data)
+{
+	EvTabbedWindow *window = EV_TABBED_WINDOW (user_data);
+	EvDocumentModel *model = get_active_model (window);
+	if (!model)
+		return;
+	go_to_page (window, ev_document_model_get_page (model) + 1);
+}
+
+static void
+on_first_page_activate (GtkMenuItem *item,
+                        gpointer     user_data)
+{
+	go_to_page (EV_TABBED_WINDOW (user_data), 0);
+}
+
+static void
+on_last_page_activate (GtkMenuItem *item,
+                       gpointer     user_data)
+{
+	EvTabbedWindow *window = EV_TABBED_WINDOW (user_data);
+	EvTab *active = ev_tab_manager_get_active (window->priv->tab_manager);
+	EvDocument *doc = active ? ev_tab_get_document (active) : NULL;
+	if (!doc)
+		return;
+	go_to_page (window, ev_document_get_n_pages (doc) - 1);
+}
+
+/* --- Help menu --- */
+
+static void
+on_about_activate (GtkMenuItem *item,
+                   gpointer     user_data)
+{
+	GtkWindow *window = GTK_WINDOW (user_data);
+	gtk_show_about_dialog (window,
+	                       "program-name", "Xreader",
+	                       "version", VERSION,
+	                       "comments", _("Document Viewer"),
+	                       "license-type", GTK_LICENSE_GPL_2_0,
+	                       NULL);
+}
+
+/* Append a mnemonic menu item, wire its "activate" signal and add an
+ * optional keyboard accelerator. */
+static void
+menu_append_item (GtkWidget     *menu,
+                  const gchar   *label,
+                  GCallback      callback,
+                  gpointer       user_data,
+                  GtkAccelGroup *accel_group,
+                  guint          accel_key,
+                  GdkModifierType accel_mods)
+{
+	GtkWidget *item = gtk_menu_item_new_with_mnemonic (label);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+	gtk_widget_show (item);
+	if (callback)
+		g_signal_connect (item, "activate", callback, user_data);
+	if (accel_group && accel_key != 0)
+		gtk_widget_add_accelerator (item, "activate", accel_group,
+		                            accel_key, accel_mods,
+		                            GTK_ACCEL_VISIBLE);
+}
+
+static void
+menu_append_separator (GtkWidget *menu)
+{
+	GtkWidget *item = gtk_separator_menu_item_new ();
+	gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+	gtk_widget_show (item);
+}
+
+/* Create a top-level menu with a mnemonic label and return its submenu. */
+static GtkWidget *
+menu_append_menu (GtkWidget   *menubar,
+                  const gchar *label)
+{
+	GtkWidget *item = gtk_menu_item_new_with_mnemonic (label);
+	GtkWidget *menu = gtk_menu_new ();
+	gtk_menu_item_set_submenu (GTK_MENU_ITEM (item), menu);
+	gtk_menu_shell_append (GTK_MENU_SHELL (menubar), item);
+	gtk_widget_show (item);
+	return menu;
+}
+
 static GtkWidget *
 build_menubar (EvTabbedWindow *window)
 {
+	GtkAccelGroup *accel_group = gtk_accel_group_new ();
+	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
+
 	GtkWidget *menubar = gtk_menu_bar_new ();
 
-	/* File menu (placeholder - full menu integration is a follow-up PR) */
-	GtkWidget *file_item = gtk_menu_item_new_with_label (_("File"));
-	GtkWidget *file_menu = gtk_menu_new ();
-	gtk_menu_item_set_submenu (GTK_MENU_ITEM (file_item), file_menu);
-	gtk_menu_shell_append (GTK_MENU_SHELL (menubar), file_item);
+	/* File */
+	GtkWidget *file_menu = menu_append_menu (menubar, _("_File"));
+	menu_append_item (file_menu, _("_Open..."),
+	                  G_CALLBACK (on_open_activate), window,
+	                  accel_group, GDK_KEY_o, GDK_CONTROL_MASK);
+	menu_append_separator (file_menu);
+	/* Close Tab (Ctrl+W) and Reopen Closed Tab (Ctrl+Shift+T) are
+	 * handled by the window's key controller; no accelerators here to
+	 * avoid double-firing. */
+	menu_append_item (file_menu, _("Close _Tab"),
+	                  G_CALLBACK (on_close_tab_activate), window,
+	                  NULL, 0, 0);
+	menu_append_item (file_menu, _("Reopen Closed Tab"),
+	                  G_CALLBACK (on_reopen_tab_activate), window,
+	                  NULL, 0, 0);
+	menu_append_separator (file_menu);
+	menu_append_item (file_menu, _("_Quit"),
+	                  G_CALLBACK (on_quit_activate), window,
+	                  accel_group, GDK_KEY_q, GDK_CONTROL_MASK);
 
-	GtkWidget *open_item = gtk_menu_item_new_with_label (_("Open..."));
-	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), open_item);
-	g_signal_connect (open_item, "activate",
-	                  G_CALLBACK (on_open_activate), window);
+	/* Edit */
+	GtkWidget *edit_menu = menu_append_menu (menubar, _("_Edit"));
+	menu_append_item (edit_menu, _("_Copy"),
+	                  G_CALLBACK (on_copy_activate), window,
+	                  accel_group, GDK_KEY_c, GDK_CONTROL_MASK);
+	menu_append_item (edit_menu, _("Select _All"),
+	                  G_CALLBACK (on_select_all_activate), window,
+	                  accel_group, GDK_KEY_a, GDK_CONTROL_MASK);
 
-	GtkWidget *close_tab_item = gtk_menu_item_new_with_label (_("Close Tab"));
-	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), close_tab_item);
-	g_signal_connect (close_tab_item, "activate",
-	                  G_CALLBACK (on_close_tab_activate), window);
+	/* View */
+	GtkWidget *view_menu = menu_append_menu (menubar, _("_View"));
+	menu_append_item (view_menu, _("Zoom _In"),
+	                  G_CALLBACK (on_zoom_in_activate), window,
+	                  accel_group, GDK_KEY_plus, GDK_CONTROL_MASK);
+	menu_append_item (view_menu, _("Zoom _Out"),
+	                  G_CALLBACK (on_zoom_out_activate), window,
+	                  accel_group, GDK_KEY_minus, GDK_CONTROL_MASK);
+	menu_append_item (view_menu, _("_Normal"),
+	                  G_CALLBACK (on_zoom_normal_activate), window,
+	                  accel_group, GDK_KEY_0, GDK_CONTROL_MASK);
+	menu_append_separator (view_menu);
+	menu_append_item (view_menu, _("Rotate _Left"),
+	                  G_CALLBACK (on_rotate_left_activate), window,
+	                  NULL, 0, 0);
+	menu_append_item (view_menu, _("Rotate _Right"),
+	                  G_CALLBACK (on_rotate_right_activate), window,
+	                  NULL, 0, 0);
+	menu_append_separator (view_menu);
+	menu_append_item (view_menu, _("Full Screen"),
+	                  G_CALLBACK (on_fullscreen_activate), window,
+	                  accel_group, GDK_KEY_F11, 0);
 
-	GtkWidget *sep = gtk_separator_menu_item_new ();
-	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), sep);
+	/* Go.  Ctrl+Page_Up/Down are reserved for tab switching by the
+	 * window's key controller, so page navigation is exposed as plain
+	 * menu actions (plus Ctrl+Home/End for first/last). */
+	GtkWidget *go_menu = menu_append_menu (menubar, _("_Go"));
+	menu_append_item (go_menu, _("_Previous Page"),
+	                  G_CALLBACK (on_prev_page_activate), window,
+	                  NULL, 0, 0);
+	menu_append_item (go_menu, _("_Next Page"),
+	                  G_CALLBACK (on_next_page_activate), window,
+	                  NULL, 0, 0);
+	menu_append_item (go_menu, _("_First Page"),
+	                  G_CALLBACK (on_first_page_activate), window,
+	                  accel_group, GDK_KEY_Home, GDK_CONTROL_MASK);
+	menu_append_item (go_menu, _("_Last Page"),
+	                  G_CALLBACK (on_last_page_activate), window,
+	                  accel_group, GDK_KEY_End, GDK_CONTROL_MASK);
 
-	GtkWidget *quit_item = gtk_menu_item_new_with_label (_("Quit"));
-	gtk_menu_shell_append (GTK_MENU_SHELL (file_menu), quit_item);
-	g_signal_connect (quit_item, "activate",
-	                  G_CALLBACK (on_quit_activate), window);
+	/* Tabs.  Ctrl+Tab / Ctrl+Shift+Tab are handled by the key
+	 * controller, so no accelerators are attached here. */
+	GtkWidget *tabs_menu = menu_append_menu (menubar, _("_Tabs"));
+	menu_append_item (tabs_menu, _("_Next Tab"),
+	                  G_CALLBACK (ev_tabbed_window_select_next_tab),
+	                  window, NULL, 0, 0);
+	menu_append_item (tabs_menu, _("P_revious Tab"),
+	                  G_CALLBACK (ev_tabbed_window_select_prev_tab),
+	                  window, NULL, 0, 0);
 
-	gtk_widget_show_all (file_item);
+	/* Help */
+	GtkWidget *help_menu = menu_append_menu (menubar, _("_Help"));
+	menu_append_item (help_menu, _("_About"),
+	                  G_CALLBACK (on_about_activate), window,
+	                  NULL, 0, 0);
 
-	/* Tabs menu */
-	GtkWidget *tabs_item = gtk_menu_item_new_with_label (_("Tabs"));
-	GtkWidget *tabs_menu = gtk_menu_new ();
-	gtk_menu_item_set_submenu (GTK_MENU_ITEM (tabs_item), tabs_menu);
-	gtk_menu_shell_append (GTK_MENU_SHELL (menubar), tabs_item);
-
-	GtkWidget *next_tab = gtk_menu_item_new_with_label (_("Next Tab"));
-	gtk_menu_shell_append (GTK_MENU_SHELL (tabs_menu), next_tab);
-	g_signal_connect_swapped (next_tab, "activate",
-	                          G_CALLBACK (ev_tabbed_window_select_next_tab),
-	                          window);
-
-	GtkWidget *prev_tab = gtk_menu_item_new_with_label (_("Previous Tab"));
-	gtk_menu_shell_append (GTK_MENU_SHELL (tabs_menu), prev_tab);
-	g_signal_connect_swapped (prev_tab, "activate",
-	                          G_CALLBACK (ev_tabbed_window_select_prev_tab),
-	                          window);
-
-	gtk_widget_show_all (tabs_item);
-
+	g_object_unref (accel_group);
 	return menubar;
 }
 
@@ -291,7 +684,8 @@ build_tab_label (EvTab *tab)
 	gchar *title = ev_tab_get_title (tab);
 	GtkWidget *label = gtk_label_new (title);
 	g_free (title);
-	gtk_label_set_max_width_chars (GTK_LABEL (label), 20);
+	gtk_label_set_width_chars (GTK_LABEL (label), 0);
+	gtk_label_set_max_width_chars (GTK_LABEL (label), 24);
 	gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
 	ev_gtk_box_append (box, label);
 
@@ -311,6 +705,59 @@ build_tab_label (EvTab *tab)
 
 	gtk_widget_show_all (box);
 	return box;
+}
+
+/* Tab labels shrink as the tab bar fills up: each tab gets an equal
+ * share of the notebook width, clamped to [TAB_MIN_WIDTH_CHARS,
+ * TAB_MAX_WIDTH_CHARS].  With few tabs the title is shown in full
+ * (up to the max); as more tabs appear the titles ellipsize down to
+ * the minimum before the bar starts scrolling. */
+#define TAB_MIN_WIDTH_CHARS 8
+#define TAB_MAX_WIDTH_CHARS 24
+
+static void
+update_tab_widths (EvTabbedWindow *window)
+{
+	GtkNotebook *notebook = GTK_NOTEBOOK (window->priv->notebook);
+	gint n_tabs = gtk_notebook_get_n_pages (notebook);
+	if (n_tabs <= 0)
+		return;
+
+	gint width = gtk_widget_get_allocated_width (window->priv->notebook);
+	if (width <= 1)
+		return;
+
+	/* Reserve room for the close button (~28px), box padding and the
+	 * notebook border, then divide the rest across the tabs.  ~7px per
+	 * character is a reasonable average for the UI font. */
+	gint per_tab = width / n_tabs;
+	gint chars = (per_tab - 44) / 7;
+	chars = CLAMP (chars, TAB_MIN_WIDTH_CHARS, TAB_MAX_WIDTH_CHARS);
+
+	gint i;
+	for (i = 0; i < n_tabs; i++) {
+		GtkWidget *page = gtk_notebook_get_nth_page (notebook, i);
+		GtkWidget *tab_label = gtk_notebook_get_tab_label (notebook, page);
+		if (!tab_label)
+			continue;
+		GList *children = gtk_container_get_children (GTK_CONTAINER (tab_label));
+		if (children) {
+			GtkWidget *label = GTK_WIDGET (children->data);
+			if (GTK_IS_LABEL (label)) {
+				gtk_label_set_width_chars (GTK_LABEL (label), 0);
+				gtk_label_set_max_width_chars (GTK_LABEL (label), chars);
+			}
+			g_list_free (children);
+		}
+	}
+}
+
+static void
+on_notebook_size_allocate (GtkWidget     *widget,
+                           GdkRectangle  *allocation,
+                           gpointer       user_data)
+{
+	update_tab_widths (EV_TABBED_WINDOW (user_data));
 }
 
 static void
@@ -406,6 +853,7 @@ on_tab_added (EvTabManager    *manager,
 	update_tab_bar_visibility (window);
 	update_window_title (window);
 	update_empty_state (window);
+	update_tab_widths (window);
 }
 
 static void
@@ -422,6 +870,7 @@ on_tab_removed (EvTabManager    *manager,
 	update_tab_bar_visibility (window);
 	update_window_title (window);
 	update_empty_state (window);
+	update_tab_widths (window);
 }
 
 static void
@@ -450,6 +899,7 @@ ev_tabbed_window_dispose (GObject *object)
 {
 	EvTabbedWindow *window = EV_TABBED_WINDOW (object);
 
+	disconnect_watched_model (window);
 	g_clear_object (&window->priv->sidebar_model);
 	g_clear_object (&window->priv->tab_manager);
 
@@ -483,7 +933,10 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	                       FALSE, FALSE, 0);
 
 	window->priv->hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
-	gtk_paned_set_position (GTK_PANED (window->priv->hpaned), 220);
+	/* The page thumbnails are THUMBNAIL_DEFAULT_WIDTH (100px) wide;
+	 * size the sidebar just wide enough to fit them plus the icon-view
+	 * border and scrollbar, instead of a fixed oversized column. */
+	gtk_paned_set_position (GTK_PANED (window->priv->hpaned), 130);
 
 	/* Left sidebar: page thumbnails.  EvSidebar binds each page to
 	 * one EvDocumentModel for its lifetime, so we own a single
@@ -507,6 +960,10 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	window->priv->notebook = gtk_notebook_new ();
 	gtk_notebook_set_show_tabs (GTK_NOTEBOOK (window->priv->notebook), FALSE);
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (window->priv->notebook), TRUE);
+	/* Recompute per-tab widths whenever the notebook is resized so
+	 * tabs shrink/grow as the window (and tab count) changes. */
+	g_signal_connect (window->priv->notebook, "size-allocate",
+	                  G_CALLBACK (on_notebook_size_allocate), window);
 	gtk_paned_pack2 (GTK_PANED (window->priv->hpaned),
 	                 window->priv->notebook, TRUE, TRUE);
 
@@ -533,9 +990,33 @@ ev_tabbed_window_init (EvTabbedWindow *window)
 	g_signal_connect (window->priv->empty_label, "drag-data-received",
 	                  G_CALLBACK (on_empty_drop), window);
 
-	window->priv->statusbar = gtk_statusbar_new ();
+	/* Statusbar: GtkStatusbar on the left (page info) with a zoom
+	 * label pushed to the right (the statusbar expands, the label
+	 * does not). */
+	window->priv->statusbar_box =
+		gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_widget_set_margin_start (window->priv->statusbar_box, 4);
+	gtk_widget_set_margin_end (window->priv->statusbar_box, 4);
+	gtk_widget_set_margin_top (window->priv->statusbar_box, 2);
+	gtk_widget_set_margin_bottom (window->priv->statusbar_box, 2);
+
+	window->priv->statusbar_inner = gtk_statusbar_new ();
+	window->priv->statusbar_context = gtk_statusbar_get_context_id (
+		GTK_STATUSBAR (window->priv->statusbar_inner), "tabbed-statusbar");
+
+	window->priv->zoom_label = gtk_label_new ("");
+	gtk_widget_set_halign (window->priv->zoom_label, GTK_ALIGN_END);
+	gtk_widget_set_margin_start (window->priv->zoom_label, 8);
+
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->statusbar_box),
+	                       window->priv->statusbar_inner,
+	                       TRUE, TRUE, 0);
+	ev_gtk_box_pack_start (GTK_BOX (window->priv->statusbar_box),
+	                       window->priv->zoom_label,
+	                       FALSE, FALSE, 0);
+
 	ev_gtk_box_pack_start (GTK_BOX (window->priv->main_box),
-	                       window->priv->statusbar,
+	                       window->priv->statusbar_box,
 	                       FALSE, FALSE, 0);
 
 	gtk_widget_show_all (window->priv->main_box);
