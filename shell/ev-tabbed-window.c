@@ -521,10 +521,13 @@ on_about_activate (GtkMenuItem *item,
 {
 	GtkWindow *window = GTK_WINDOW (user_data);
 	gtk_show_about_dialog (window,
-	                       "program-name", "Xreader",
+	                       "program-name", "Xreader Pro",
 	                       "version", VERSION,
 	                       "comments", _("Document Viewer"),
+	                       "website", "https://github.com/yuri-schmaltz/xreader_pro",
+	                       "logo-icon-name", "xreader",
 	                       "license-type", GTK_LICENSE_GPL_2_0,
+	                       "wrap-license", TRUE,
 	                       NULL);
 }
 
