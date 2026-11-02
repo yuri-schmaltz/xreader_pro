@@ -41,57 +41,44 @@ app roda pt-BR, ícone resolve, daemon D-Bus funciona, appdata XML válido (`xml
 - App em **pt-BR**; `GETTEXT_PACKAGE=xreader-pro` (o `.mo` é `xreader-pro.mo`).
 - Usuário **não interpreta imagens** — qualquer screenshot deve ser descrito em texto.
 
-## 4. PENDÊNCIA PRINCIPAL — migração de instalação para system-wide
+## 4. Migração para system-wide — CONCLUÍDA (1 pendência de permissão)
 
-O usuário **escolheu migrar** de `~/.local` para **`/usr/local`** (system-wide).
+Migração de `~/.local` → **`/usr/local`** executada. O usuário rodou
+`sudo ninja -C build install` (o agente não digita senha).
 
-### Estado atual
-- `~/.local` está **completo e validado** (binário no PATH, launcher "Xreader Pro",
-  handler padrão de PDF, schemas, backends, pt-BR, man, appdata, D-Bus).
-- Build **já reconfigurado** com `-Dprefix=/usr/local` e **já compilado**
-  (paths novos confirmados: `DXREADERDATADIR=/usr/local/share/xreader-pro`,
-  `DEV_BACKENDSDIR=/usr/local/lib/x86_64-linux-gnu/xreader-pro/3/backends`).
-- **Falta o install**, que exige senha de sudo — o agente **não consegue** digitar
-  senha (`sudo -n` falha). O usuário precisa rodar:
+### Itens concluídos
+1. **Validação system-wide: OK** —
+   - `which xreader-pro` → **`/usr/local/bin/xreader-pro`** (vence no PATH),
+     `--version` → "Xreader Pro 1.0.0"
+   - desktop `Name=Xreader Pro`, `Exec/Icon/TryExec=xreader-pro`
+   - handler padrão: `xdg-mime query default application/pdf` → `xreader-pro.desktop`
+   - schemas, backends (`libpdfdocument.so` etc.), libs (`libxreaderview.so.3`),
+     `.pc`, man, appdata, `xreader.thumbnailer` — todos em `/usr/local`
+   - D-Bus service `Exec=/usr/local/libexec/xreaderd`; `XDG_DATA_DIRS` já contém
+     `/usr/local/share` → auto-ativador funciona nativamente
+2. **Limpeza de `~/.local`: OK** — prefixo antigo **totalmente vazio** de `*xreader*`
+   (binário, helpers, `xreaderd`, desktop, appdata, man, ícones, **todos** os
+   `.mo` de todos os idiomas, D-Bus service, schemas, `share/xreader-pro/`,
+   backends, libs `libx{readerview,readerdocument}*`, `.pc`, `include/`,
+   `xreader.thumbnailer`). O `gschemas.compiled` de `~/.local` era exclusivo do
+   xreader (dir de schemas ficou vazio → nenhum outro app afetado).
+3. **Teste ponta a ponta: OK** — app **RUNNING** de `/usr/local/bin/xreader-pro`,
+   abrindo PDFs com libs de `/usr/local/lib/...`, `LANGUAGE=pt_BR` no ambiente,
+   daemon `org.x.reader.Daemon` reativou; `mimeinfo.cache` system-wide existe.
+
+### ⚠️ PENDÊNCIA ÚNICA — permissão do locale (pt-BR quebrado)
+`/usr/local/share/locale` instalou como **`drwx------` (root)** → o app não lê
+`/usr/local/share/locale/pt_BR/LC_MESSAGES/xreader-pro.mo` e **cai em inglês**
+(testado: `gettext.translation(...)` → `FileNotFoundError`).
+
+Correção (exige sudo):
 
 ```bash
-cd ~/Documentos/xreader
-sudo ninja -C build install
+sudo chmod -R a+rX /usr/local/share/locale
 ```
 
-### Depois do install (tarefas do agente)
-1. **Validar** a instalação system-wide:
-   - `which xreader-pro` → `/usr/local/bin/xreader-pro` (PATH: `~/.local/bin` está
-     ANTES de `/usr/local/bin` — ver §6!)
-   - `xreader-pro --version` → "Xreader Pro 1.0.0"
-   - launcher `Name=Xreader Pro`, ícone resolve, `xdg-mime query default application/pdf`
-   - schemas em `/usr/local/share/glib-2.0/schemas/gschemas.compiled`
-   - backend PDF em `/usr/local/lib/x86_64-linux-gnu/xreader-pro/3/backends/`
-   - pt-BR (`/usr/local/share/locale/pt_BR/LC_MESSAGES/xreader-pro.mo`)
-   - D-Bus: `XDG_DATA_DIRS` **já contém `/usr/local/share`** → auto-ativador do
-     `org.x.reader.Daemon.service` funciona nativamente (melhor que em `~/.local`)
-2. **Limpar os artefatos antigos de `~/.local`** (o meson não remove instalados
-   anteriores). Preservar nada — tudo foi re-instalado em `/usr/local`:
-   ```
-   ~/.local/bin/{xreader-pro,xreader-previewer,xreader-thumbnailer}
-   ~/.local/libexec/xreaderd
-   ~/.local/share/applications/xreader-pro.desktop
-   ~/.local/share/metainfo/xreader-pro.appdata.xml
-   ~/.local/share/man/man1/{xreader-pro,xreader-previewer,xreader-thumbnailer}.1
-   ~/.local/share/icons/hicolor/*/apps/xreader-pro.*
-   ~/.local/share/locale/pt_BR/LC_MESSAGES/xreader-pro.mo
-   ~/.local/share/dbus-1/services/org.x.reader.Daemon.service
-   ~/.local/share/glib-2.0/schemas/org.x.reader.gschema.xml + gschemas.compiled
-   ~/.local/share/xreader-pro/
-   ~/.local/lib/x86_64-linux-gnu/xreader-pro/  (backends + libs)
-   ~/.local/lib/x86_64-linux-gnu/libx{readerview,readerdocument}*
-   ~/.local/lib/x86_64-linux-gnu/pkgconfig/xreader-pro-{document,view}-1.5.pc
-   ~/.local/include/xreader-pro/
-   ```
-3. **Atualizar caches**: `sudo update-desktop-database /usr/local/share/applications`,
-   `sudo update-mime-database /usr/local/share/mime` (se existir o dir).
-4. **Teste ponta a ponta**: `pkill xreaderd` antes do teste (ver §5), lançar
-   `xreader-pro --tabbed <pdf>`, conferir pt-BR e daemon reativando.
+Depois: relançar e confirmar pt-BR. As demais permissões de `/usr/local` estão
+corretas (755 dirs / 644 arquivos).
 
 ## 5. Armadilhas conhecidas (já diagnosticadas)
 
@@ -113,9 +100,9 @@ sudo ninja -C build install
 
 ## 6. Notas de ambiente
 
-- `PATH` do usuário: `~/.local/bin` aparece **antes** de `/usr/local/bin` →
-  após a migração, **confirmar** qual binário `which` retorna; se `~/.local` ainda
-  tiver o binário e não foi limpo, ele "vence". Por isso a limpeza do §4 é obrigatória.
+- `PATH` do usuário: `~/.local/bin` aparece **antes** de `/usr/local/bin`, mas o
+  prefixo antigo foi **totalmente limpo** (§4) → `which xreader-pro` já retorna
+  `/usr/local/bin/xreader-pro`. Se algum dia reinstalar em `~/.local`, ele venceria.
 - `XDG_DATA_DIRS` = `...:/usr/local/share:/usr/share` → **contém `/usr/local/share`**
   (e NÃO contém `~/.local/share`, por isso o D-Bus em `~/.local` era frágil).
 - App de teste: `/tmp/opencode/test-docs/doc1..3.pdf` (multi-página).
@@ -167,14 +154,16 @@ setsid nohup xreader-pro --tabbed doc.pdf >/tmp/opencode/xr.log 2>&1 </dev/null 
 
 ## 10. Estado do app em execução
 
-Nenhuma instância rodando no momento da captura (era `PID 1970419`/`1986682` antes).
-O binário ativo no PATH é ainda **`~/.local/bin/xreader-pro`** (migração pendente, §4).
+Instância de teste rodando de **`/usr/local/bin/xreader-pro`** (migração concluída).
+Fechar com `pkill -x xreader-pro; pkill xreaderd` se necessário.
 
 ## 11. Próximos passos (ordem sugerida)
 
-1. **[do usuário]** Rodar `sudo ninja -C build install` (§4).
-2. **[agente]** Validar install system-wide + limpar `~/.local` + caches (§4).
-3. Commitar/push se algo mudar (working tree estava limpa em `0e9e1bb`).
+1. **[do usuário]** `sudo chmod -R a+rX /usr/local/share/locale` → reativa o
+   **pt-BR** (§4, pendência única da migração).
+2. **[agente]** Confirmar pt-BR após o chmod (relançar e checar strings da UI).
+3. Commitar/push (o `HANDOFF.md` pode trazer atualizações; working tree limpa
+   além disso).
 4. **[opcional, pedido pendente]** Corrigir o daemon stale no código (D-Bus
    NameOwnerChanged) — melhorou a robustez; usuário ainda não aprovou.
 5. **[opcional]** Entrada `<releases>` 1.0.0 no appdata (a seção ainda lista 4.7/4.8).
